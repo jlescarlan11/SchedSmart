@@ -1,8 +1,13 @@
+import FeatureSection from "./__feature/Feature";
+import HeroSection from "./__hero/Hero";
+import SchedulerSection from "./__scheduler/Scheduler";
 
 export default function Home() {
   return (
     <div>
-      Hello World
+      <HeroSection />
+      <FeatureSection />
+      <SchedulerSection />
     </div>
   );
 }
