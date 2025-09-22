@@ -1,114 +1,305 @@
 import React, { useMemo, useRef } from "react";
-import moment from "moment";
-import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CalendarDays, FileDown, AlertCircle, Download } from "lucide-react";
+import { CalendarDays, Camera } from "lucide-react";
 
-// ============= TYPES =============
 interface ScheduleSlot {
   courseCode: string;
+  room?: string;
   startTime: string;
   endTime: string;
   days: string[];
-  slotIndex?: number;
 }
 
 interface GeneratedSchedule {
   schedule: ScheduleSlot[];
-  conflicts: string[];
-  totalCourses: number;
-  scheduledCourses: number;
-  algorithm: string;
-  generatedAt: string;
 }
 
-// ============= UTILITIES =============
-const courseColors = [
-  "#2D5D31",
-  "#1E3A5F",
-  "#8B4513",
-  "#4B0082",
-  "#006400",
-  "#191970",
-  "#8B0000",
-  "#556B2F",
+// Enhanced color palette matching the image
+const COLORS = {
+  primary: "#2D5A27", // Dark green like in the image
+  primaryLight: "#4A7C59",
+  background: "#F0F8E8", // Light green background
+  headerBg: "#8BC34A", // Lighter green for header
+  border: "#D4EDDA",
+  borderStrong: "#C3E6CB",
+  borderSubtle: "#E8F5E8", // Very subtle border for downloaded image
+  text: "#1B4332",
+  textLight: "#6C757D",
+  white: "#FFFFFF",
+};
+
+const WEEKDAYS = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
 ];
 
-const parseTime12to24 = (time12h: string): { hour: number; minute: number } => {
-  const [time, modifier] = time12h.split(" ");
-  let [hours, minutes] = time.split(":").map(Number);
+// Convert time string to minutes from midnight
+const parseTime = (time: string): number => {
+  const [timePart, period] = time.trim().split(" ");
+  const [hours, minutes = "0"] = timePart.split(":");
+  let hour = parseInt(hours);
+  const minute = parseInt(minutes);
 
-  if (hours === 12) hours = 0;
-  if (modifier === "PM") hours += 12;
+  if (period?.toUpperCase() === "PM" && hour !== 12) hour += 12;
+  if (period?.toUpperCase() === "AM" && hour === 12) hour = 0;
 
-  return { hour: hours, minute: minutes || 0 };
+  return hour * 60 + minute;
 };
 
-const createCourseColorMap = (schedule: ScheduleSlot[]) => {
-  const map: { [key: string]: string } = {};
-  let colorIndex = 0;
-  schedule.forEach((slot) => {
-    if (!map[slot.courseCode]) {
-      map[slot.courseCode] = courseColors[colorIndex % courseColors.length];
-      colorIndex++;
-    }
-  });
-  return map;
+// Format hour for display (convert 24-hour to 12-hour format)
+const formatHourForDisplay = (hour: number): string => {
+  if (hour === 0) return "12";
+  if (hour <= 12) return hour.toString();
+  return (hour - 12).toString();
 };
 
-const createScheduleEvents = (
-  schedule: ScheduleSlot[],
-  courseColorMap: { [key: string]: string }
-) => {
-  return schedule.flatMap((slot) => {
-    return slot.days.map((day) => {
-      const startTimeParsed = parseTime12to24(slot.startTime);
-      const endTimeParsed = parseTime12to24(slot.endTime);
+// Create 30-minute time slots from 7 AM to 7 PM
+const createTimeSlots = () => {
+  const slots = [];
+  for (let hour = 7; hour <= 18; hour++) {
+    const currentHour = formatHourForDisplay(hour);
+    const nextHour = formatHourForDisplay(hour + 1);
+    const displayTime = `${currentHour}-${nextHour}`;
 
-      return {
-        courseCode: slot.courseCode,
-        day,
-        startHour: startTimeParsed.hour,
-        startMinute: startTimeParsed.minute,
-        endHour: endTimeParsed.hour,
-        endMinute: endTimeParsed.minute,
-        startTime: slot.startTime,
-        endTime: slot.endTime,
-        color: courseColorMap[slot.courseCode],
-        duration:
-          endTimeParsed.hour * 60 +
-          endTimeParsed.minute -
-          (startTimeParsed.hour * 60 + startTimeParsed.minute),
-      };
+    // First half of the hour
+    slots.push({
+      hour: hour,
+      isFirstHalf: true,
+      display: displayTime,
+      startMinutes: hour * 60,
+      endMinutes: hour * 60 + 30,
+      slotKey: `${hour}-0`, // hour-0 for first half, hour-1 for second half
     });
-  });
+
+    // Second half of the hour
+    slots.push({
+      hour: hour,
+      isFirstHalf: false,
+      display: displayTime,
+      startMinutes: hour * 60 + 30,
+      endMinutes: (hour + 1) * 60,
+      slotKey: `${hour}-1`,
+    });
+  }
+  return slots;
 };
 
-// ============= DOWNLOAD FUNCTIONALITY =============
-const useImageDownload = () => {
-  const downloadAsImage = async (elementRef: HTMLDivElement | null) => {
-    if (!elementRef) {
-      alert("Element reference not found");
-      return;
-    }
+const ScheduleTable = ({ schedule }: { schedule: ScheduleSlot[] }) => {
+  const tableRef = useRef<HTMLDivElement>(null);
+  const timeSlots = useMemo(() => createTimeSlots(), []);
+
+  // Build the schedule grid with 30-minute slots
+  const scheduleGrid = useMemo(() => {
+    const grid: Record<
+      string,
+      {
+        course: ScheduleSlot;
+        isStart: boolean;
+        rowSpan: number;
+      } | null
+    > = {};
+
+    // Initialize empty grid
+    timeSlots.forEach((slot) => {
+      WEEKDAYS.forEach((day) => {
+        grid[`${day}-${slot.slotKey}`] = null;
+      });
+    });
+
+    // Place courses in the grid
+    schedule.forEach((course) => {
+      const startMinutes = parseTime(course.startTime);
+      const endMinutes = parseTime(course.endTime);
+      const durationMinutes = endMinutes - startMinutes;
+      const duration30MinSlots = durationMinutes / 30;
+
+      course.days.forEach((day) => {
+        const startHour = Math.floor(startMinutes / 60);
+        const startMinuteInHour = startMinutes % 60;
+
+        // Determine which 30-minute slot to start in
+        const startSlotIndex = startMinuteInHour < 30 ? 0 : 1;
+        const startSlotKey = `${startHour}-${startSlotIndex}`;
+
+        // Place the starting cell
+        const gridKey = `${day}-${startSlotKey}`;
+        if (grid.hasOwnProperty(gridKey)) {
+          grid[gridKey] = {
+            course,
+            isStart: true,
+            rowSpan: duration30MinSlots,
+          };
+
+          // Mark continuation cells
+          let currentHour = startHour;
+          let currentSlotIndex = startSlotIndex;
+
+          for (let i = 1; i < duration30MinSlots; i++) {
+            currentSlotIndex++;
+            if (currentSlotIndex >= 2) {
+              currentSlotIndex = 0;
+              currentHour++;
+            }
+
+            const continueKey = `${day}-${currentHour}-${currentSlotIndex}`;
+            if (grid.hasOwnProperty(continueKey)) {
+              grid[continueKey] = {
+                course,
+                isStart: false,
+                rowSpan: 0,
+              };
+            }
+          }
+        }
+      });
+    });
+
+    return grid;
+  }, [schedule, timeSlots]);
+
+  const downloadAsImage = async () => {
+    if (!tableRef.current) return;
 
     try {
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
-      if (!ctx) throw new Error("Canvas context not available");
+      if (!ctx) return;
 
-      const table = elementRef.querySelector("table");
-      if (!table) throw new Error("Table not found");
+      const scale = 3;
+      const cellWidth = 150;
+      const cellHeight = 25; // 25px for each 30-minute slot
+      const timeColumnWidth = 80;
+      const headerHeight = 40;
 
-      await drawScheduleOnCanvas(ctx, canvas, table);
+      const tableWidth = timeColumnWidth + WEEKDAYS.length * cellWidth;
+      const tableHeight = headerHeight + timeSlots.length * cellHeight;
 
+      canvas.width = tableWidth * scale;
+      canvas.height = tableHeight * scale;
+      ctx.scale(scale, scale);
+
+      // Background
+      ctx.fillStyle = COLORS.background;
+      ctx.fillRect(0, 0, tableWidth, tableHeight);
+
+      // Header row
+      ctx.fillStyle = COLORS.headerBg;
+      ctx.fillRect(0, 0, tableWidth, headerHeight);
+
+      // Header borders
+      ctx.strokeStyle = COLORS.borderStrong;
+      ctx.lineWidth = 1;
+      ctx.strokeRect(0, 0, tableWidth, headerHeight);
+
+      // Header text
+      ctx.fillStyle = COLORS.text;
+      ctx.font =
+        "bold 14px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+
+      // Time header
+      ctx.strokeRect(0, 0, timeColumnWidth, headerHeight);
+      ctx.fillText("Time", timeColumnWidth / 2, headerHeight / 2);
+
+      // Day headers
+      WEEKDAYS.forEach((day, index) => {
+        const x = timeColumnWidth + index * cellWidth;
+        ctx.strokeRect(x, 0, cellWidth, headerHeight);
+        ctx.fillText(day, x + cellWidth / 2, headerHeight / 2);
+      });
+
+      // Draw each 30-minute time slot
+      timeSlots.forEach((slot, slotIndex) => {
+        const rowY = headerHeight + slotIndex * cellHeight;
+
+        // Time column - only draw time label and background for first half of hour
+        if (slot.isFirstHalf) {
+          // Time column background spans both 30-min slots
+          ctx.fillStyle = COLORS.headerBg;
+          ctx.fillRect(0, rowY, timeColumnWidth, cellHeight * 2);
+
+          // Time column border spans both slots
+          ctx.strokeStyle = COLORS.borderStrong;
+          ctx.lineWidth = 1;
+          ctx.strokeRect(0, rowY, timeColumnWidth, cellHeight * 2);
+
+          // Time text in the middle of the two slots
+          ctx.fillStyle = COLORS.text;
+          ctx.font =
+            "12px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+          ctx.textAlign = "center";
+          ctx.fillText(slot.display, timeColumnWidth / 2, rowY + cellHeight);
+        }
+
+        // Day cells for this 30-minute slot
+        WEEKDAYS.forEach((day, dayIndex) => {
+          const cellX = timeColumnWidth + dayIndex * cellWidth;
+          const gridData = scheduleGrid[`${day}-${slot.slotKey}`];
+
+          if (gridData?.isStart) {
+            // Course starting in this slot
+            const blockHeight = gridData.rowSpan * cellHeight;
+
+            // Draw course block
+            ctx.fillStyle = COLORS.primary;
+            ctx.fillRect(cellX, rowY, cellWidth, blockHeight);
+
+            // Course block border
+            ctx.strokeStyle = COLORS.borderStrong;
+            ctx.lineWidth = 1;
+            ctx.strokeRect(cellX, rowY, cellWidth, blockHeight);
+
+            // Course text
+            ctx.fillStyle = COLORS.white;
+            ctx.font =
+              "bold 11px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+            ctx.textAlign = "center";
+
+            // Course code
+            ctx.fillText(
+              gridData.course.courseCode,
+              cellX + cellWidth / 2,
+              rowY + blockHeight / 2 - 6
+            );
+
+            // Room (if available)
+            if (gridData.course.room) {
+              ctx.font =
+                "9px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+              ctx.fillText(
+                gridData.course.room,
+                cellX + cellWidth / 2,
+                rowY + blockHeight / 2 + 6
+              );
+            }
+          } else if (!gridData || !gridData.isStart) {
+            // Empty cell or continuation cell (don't draw anything for continuation)
+            if (!gridData) {
+              ctx.fillStyle = COLORS.background;
+              ctx.fillRect(cellX, rowY, cellWidth, cellHeight);
+              ctx.strokeStyle = COLORS.borderStrong;
+              ctx.lineWidth = 1;
+              ctx.strokeRect(cellX, rowY, cellWidth, cellHeight);
+            }
+          }
+        });
+      });
+
+      // Download
       canvas.toBlob((blob) => {
         if (blob) {
           const url = URL.createObjectURL(blob);
           const link = document.createElement("a");
           link.href = url;
-          link.download = `schedule-${moment().format("YYYY-MM-DD-HHmm")}.png`;
+          link.download = `schedule-${new Date()
+            .toISOString()
+            .slice(0, 10)}.png`;
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
@@ -116,574 +307,289 @@ const useImageDownload = () => {
         }
       }, "image/png");
     } catch (error) {
-      console.error("Canvas method failed:", error);
-      downloadAsHTML(elementRef);
+      console.error("Error generating image:", error);
+      alert("Failed to generate image. Please try again.");
     }
   };
 
-  const drawScheduleOnCanvas = async (
-    ctx: CanvasRenderingContext2D,
-    canvas: HTMLCanvasElement,
-    table: HTMLTableElement
-  ) => {
-    const cellWidth = 120;
-    const cellHeight = 60;
-    const rows = table.querySelectorAll("tr");
-    const cols = rows[0]?.querySelectorAll("th, td").length || 7;
-
-    canvas.width = cols * cellWidth;
-    canvas.height = rows.length * cellHeight;
-
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.font = "11px Arial, sans-serif";
-    ctx.textAlign = "center";
-
-    rows.forEach((row, rowIndex) => {
-      const cells = row.querySelectorAll("th, td");
-      const isHeader = row.querySelector("th") !== null;
-
-      cells.forEach((cell, colIndex) => {
-        const x = colIndex * cellWidth;
-        const y = rowIndex * cellHeight;
-
-        if (isHeader) {
-          drawCell(
-            ctx,
-            x,
-            y,
-            cellWidth,
-            cellHeight,
-            "#f3f4f6",
-            cell.textContent?.trim() || "",
-            "#000000"
-          );
-        } else if (colIndex === 0) {
-          drawCell(
-            ctx,
-            x,
-            y,
-            cellWidth,
-            cellHeight,
-            "#f8f9fa",
-            cell.textContent?.trim() || "",
-            "#000000",
-            true
-          );
-        } else {
-          const bgColor =
-            (cell as HTMLElement).style.backgroundColor || "#ffffff";
-          drawCell(
-            ctx,
-            x,
-            y,
-            cellWidth,
-            cellHeight,
-            bgColor,
-            cell.textContent?.trim() || "",
-            "#ffffff",
-            false,
-            bgColor !== "#ffffff"
-          );
-        }
+  // Group time slots by hour for display
+  const groupedTimeSlots = useMemo(() => {
+    const groups = [];
+    for (let i = 0; i < timeSlots.length; i += 2) {
+      groups.push({
+        hour: timeSlots[i].hour,
+        display: timeSlots[i].display,
+        firstHalf: timeSlots[i],
+        secondHalf: timeSlots[i + 1],
       });
-    });
-  };
-
-  const drawCell = (
-    ctx: CanvasRenderingContext2D,
-    x: number,
-    y: number,
-    width: number,
-    height: number,
-    bgColor: string,
-    text: string,
-    textColor: string,
-    isBold = false,
-    isMultiline = false
-  ) => {
-    ctx.fillStyle = bgColor;
-    ctx.fillRect(x, y, width, height);
-    ctx.strokeStyle = "#6b7280";
-    ctx.lineWidth = 1;
-    ctx.strokeRect(x, y, width, height);
-
-    ctx.fillStyle = textColor;
-    ctx.font = `${isBold ? "bold " : ""}${
-      isMultiline ? "10" : "11"
-    }px Arial, sans-serif`;
-
-    if (isMultiline && text) {
-      const lines = text.split("\n").filter((line) => line.trim());
-      lines.forEach((line, index) => {
-        ctx.fillText(
-          line,
-          x + width / 2,
-          y + height / 2 + index * 12 - (lines.length - 1) * 6
-        );
-      });
-    } else {
-      ctx.fillText(text, x + width / 2, y + height / 2 + 4);
     }
-  };
-
-  const downloadAsHTML = (elementRef: HTMLDivElement) => {
-    try {
-      const table = elementRef.querySelector("table");
-      if (!table) return;
-
-      const htmlContent = `
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Class Schedule</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; background: white; }
-        table { border-collapse: collapse; width: 100%; margin: 20px 0; }
-        th, td { border: 1px solid #666; padding: 8px; text-align: center; vertical-align: middle; }
-        th { background-color: #f0f0f0; font-weight: bold; }
-        .time-cell { background-color: #f8f8f8; font-weight: bold; }
-        @media print { body { margin: 0; } }
-    </style>
-</head>
-<body>
-    <h2>Class Schedule</h2>
-    ${createTableHTML(table)}
-    <p><em>Generated on ${new Date().toLocaleString()}</em></p>
-</body>
-</html>`;
-
-      const blob = new Blob([htmlContent], { type: "text/html" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `schedule-${moment().format("YYYY-MM-DD-HHmm")}.html`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-
-      alert(
-        'Downloaded as HTML file. You can open it in a browser and use "Print to PDF" or screenshot it.'
-      );
-    } catch (error) {
-      console.error("HTML fallback failed:", error);
-      alert("Download failed. Please try refreshing the page.");
-    }
-  };
-
-  const createTableHTML = (originalTable: HTMLTableElement): string => {
-    const rows = originalTable.querySelectorAll("tr");
-    let tableHTML = "<table>";
-
-    rows.forEach((row) => {
-      const cells = row.querySelectorAll("th, td");
-      const isHeader = row.querySelector("th") !== null;
-
-      tableHTML += "<tr>";
-      cells.forEach((cell, colIndex) => {
-        const tag = isHeader ? "th" : "td";
-        const bgColor = (cell as HTMLElement).style.backgroundColor;
-        const isTimeCell = colIndex === 0 && !isHeader;
-
-        let text = cell.textContent?.trim() || "";
-        if (cell.children.length > 0) {
-          const courseCode =
-            cell.querySelector(".font-medium")?.textContent?.trim() || "";
-          const timeText =
-            cell.querySelector(".text-xs")?.textContent?.trim() || "";
-          text = courseCode + (timeText ? "<br/>" + timeText : "");
-        }
-
-        let style = "";
-        if (bgColor && bgColor !== "rgb(255, 255, 255)") {
-          style = ` style="background-color: ${bgColor}; color: white;"`;
-        } else if (isTimeCell) {
-          style = ' class="time-cell"';
-        }
-
-        tableHTML += `<${tag}${style}>${text}</${tag}>`;
-      });
-      tableHTML += "</tr>";
-    });
-
-    return tableHTML + "</table>";
-  };
-
-  return { downloadAsImage };
-};
-
-// ============= SCHEDULE TABLE COMPONENT =============
-interface ScheduleTableProps {
-  schedule: ScheduleSlot[];
-}
-
-const ScheduleTable: React.FC<ScheduleTableProps> = ({ schedule }) => {
-  const tableRef = useRef<HTMLDivElement>(null);
-  const { downloadAsImage } = useImageDownload();
-
-  const days = [
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-  ];
-
-  const timeSlots = useMemo(() => {
-    const slots: {
-      time: string;
-      display: string;
-      hour: number;
-      minute: number;
-    }[] = [];
-    for (let hour = 7; hour <= 21; hour++) {
-      for (let minute = 0; minute < 60; minute += 30) {
-        const time24 = `${hour.toString().padStart(2, "0")}:${minute
-          .toString()
-          .padStart(2, "0")}`;
-        const display = moment(time24, "HH:mm").format("h:mm A");
-        slots.push({ time: time24, display, hour, minute });
-      }
-    }
-    return slots;
-  }, []);
-
-  const courseColorMap = useMemo(
-    () => createCourseColorMap(schedule),
-    [schedule]
-  );
-  const scheduleEvents = useMemo(
-    () => createScheduleEvents(schedule, courseColorMap),
-    [schedule, courseColorMap]
-  );
-
-  const scheduleGrid = useMemo(() => {
-    const grid: {
-      [key: string]: Array<{
-        courseCode: string;
-        color: string;
-        startTime: string;
-        endTime: string;
-        isStart: boolean;
-        duration: number;
-      }>;
-    } = {};
-
-    // Initialize grid
-    timeSlots.forEach((slot) => {
-      days.forEach((day) => {
-        grid[`${day}-${slot.time}`] = [];
-      });
-    });
-
-    // Fill grid with events
-    scheduleEvents.forEach((event) => {
-      const eventStartMinutes = event.startHour * 60 + event.startMinute;
-      const eventEndMinutes = event.endHour * 60 + event.endMinute;
-
-      timeSlots.forEach((slot) => {
-        const slotMinutes = slot.hour * 60 + slot.minute;
-        const nextSlotMinutes = slotMinutes + 30;
-
-        if (
-          eventStartMinutes < nextSlotMinutes &&
-          eventEndMinutes > slotMinutes
-        ) {
-          const key = `${event.day}-${slot.time}`;
-          const isStart =
-            eventStartMinutes >= slotMinutes &&
-            eventStartMinutes < nextSlotMinutes;
-
-          grid[key].push({
-            courseCode: event.courseCode,
-            color: event.color,
-            startTime: event.startTime,
-            endTime: event.endTime,
-            isStart,
-            duration: event.duration,
-          });
-        }
-      });
-    });
-
-    return grid;
-  }, [scheduleEvents, timeSlots, days]);
-
-  const copyScheduleText = () => {
-    if (!tableRef.current) return;
-
-    try {
-      const table = tableRef.current.querySelector("table");
-      if (!table) return;
-
-      let scheduleText = "CLASS SCHEDULE\n\n";
-      const rows = table.querySelectorAll("tr");
-
-      rows.forEach((row, rowIndex) => {
-        const cells = row.querySelectorAll("th, td");
-        const rowText = Array.from(cells)
-          .map((cell) => (cell.textContent?.trim() || "").padEnd(15))
-          .join("");
-        scheduleText += rowText + "\n";
-
-        if (rowIndex === 0) scheduleText += "=".repeat(80) + "\n";
-      });
-
-      navigator.clipboard
-        .writeText(scheduleText)
-        .then(() => alert("Schedule copied to clipboard!"))
-        .catch(() => alert("Failed to copy to clipboard"));
-    } catch (error) {
-      console.error("Copy failed:", error);
-    }
-  };
+    return groups;
+  }, [timeSlots]);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <CalendarDays className="h-5 w-5" />
-            Class Schedule Table
+    <Card className="shadow-lg border-2" style={{ borderColor: COLORS.border }}>
+      <CardHeader className="pb-4">
+        <CardTitle className="flex items-center justify-between flex-wrap gap-3 text-xl font-semibold">
+          <div className="flex items-center gap-3">
+            <CalendarDays
+              className="h-6 w-6"
+              style={{ color: COLORS.primary }}
+            />
+            <span style={{ color: COLORS.text }}>Class Schedule</span>
           </div>
-          <div className="flex gap-2">
-            <Button
-              onClick={() => downloadAsImage(tableRef.current)}
-              variant="outline"
-              size="sm"
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Download
-            </Button>
-            <Button onClick={copyScheduleText} variant="outline" size="sm">
-              <FileDown className="h-4 w-4 mr-2" />
-              Copy Text
-            </Button>
-          </div>
+          <Button
+            onClick={downloadAsImage}
+            variant="outline"
+            size="sm"
+            className="transition-colors duration-200"
+            style={{
+              color: COLORS.primary,
+              borderColor: COLORS.primary,
+            }}
+          >
+            <Camera className="h-4 w-4 mr-2" />
+            Export PNG
+          </Button>
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div ref={tableRef} className="bg-white p-4 rounded-lg border">
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse border border-gray-300">
-              <thead>
-                <tr>
-                  <th className="border border-gray-300 bg-gray-100 p-3 text-sm font-bold min-w-[100px] sticky left-0 z-10">
-                    Time
+      <CardContent className="p-0">
+        <div ref={tableRef} className="overflow-auto">
+          <table
+            className="w-full border-collapse"
+            style={{ backgroundColor: COLORS.background }}
+          >
+            <thead>
+              <tr>
+                <th
+                  className="p-3 text-sm font-bold text-center"
+                  style={{
+                    backgroundColor: COLORS.headerBg,
+                    color: COLORS.text,
+                    minWidth: "80px",
+                    border: `1px solid ${COLORS.borderStrong}`,
+                  }}
+                >
+                  Time
+                </th>
+                {WEEKDAYS.map((day) => (
+                  <th
+                    key={day}
+                    className="p-3 text-sm font-bold text-center"
+                    style={{
+                      backgroundColor: COLORS.headerBg,
+                      color: COLORS.text,
+                      minWidth: "150px",
+                      border: `1px solid ${COLORS.borderStrong}`,
+                    }}
+                  >
+                    {day}
                   </th>
-                  {days.map((day) => (
-                    <th
-                      key={day}
-                      className="border border-gray-300 bg-gray-100 p-3 text-sm font-bold min-w-[140px]"
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {groupedTimeSlots.map((group) => (
+                <React.Fragment key={group.hour}>
+                  {/* First 30-minute row */}
+                  <tr>
+                    <td
+                      rowSpan={2}
+                      className="p-2 text-center text-sm font-semibold"
+                      style={{
+                        backgroundColor: COLORS.headerBg,
+                        color: COLORS.text,
+                        border: `1px solid ${COLORS.borderStrong}`,
+                        minHeight: "50px",
+                      }}
                     >
-                      {day}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {timeSlots.map((timeSlot) => (
-                  <tr key={timeSlot.time} className="h-12">
-                    <td className="border border-gray-300 bg-gray-50 p-2 text-center text-xs font-medium sticky left-0 z-10">
-                      {timeSlot.display}
+                      {group.display}
                     </td>
-                    {days.map((day) => {
-                      const events =
-                        scheduleGrid[`${day}-${timeSlot.time}`] || [];
+                    {WEEKDAYS.map((day) => {
+                      const gridData =
+                        scheduleGrid[`${day}-${group.firstHalf.slotKey}`];
 
-                      if (events.length === 0) {
+                      if (gridData?.isStart) {
                         return (
                           <td
-                            key={day}
-                            className="border border-gray-300 bg-white h-12"
-                          />
+                            key={`${day}-${group.firstHalf.slotKey}`}
+                            rowSpan={gridData.rowSpan}
+                            className="p-1 text-center relative"
+                            style={{
+                              backgroundColor: COLORS.primary,
+                              color: COLORS.white,
+                              border: `1px solid ${COLORS.borderStrong}`,
+                              verticalAlign: "middle",
+                              minHeight: "25px",
+                            }}
+                          >
+                            <div className="font-bold text-xs">
+                              {gridData.course.courseCode}
+                            </div>
+                            {gridData.course.room && (
+                              <div className="text-xs mt-1 opacity-90">
+                                {gridData.course.room}
+                              </div>
+                            )}
+                          </td>
                         );
                       }
 
-                      const primaryEvent = events[0];
+                      if (gridData && !gridData.isStart) {
+                        return null;
+                      }
 
                       return (
                         <td
-                          key={day}
-                          className="border border-gray-300 p-1 relative"
+                          key={`${day}-${group.firstHalf.slotKey}`}
+                          className="p-1"
                           style={{
-                            backgroundColor: primaryEvent.color,
-                            backgroundImage:
-                              events.length > 1
-                                ? `linear-gradient(45deg, ${primaryEvent.color} 50%, ${events[1].color} 50%)`
-                                : undefined,
+                            backgroundColor: COLORS.background,
+                            border: `1px solid ${COLORS.borderStrong}`,
+                            height: "25px",
                           }}
-                        >
-                          {primaryEvent.isStart && (
-                            <div className="text-white text-center">
-                              <div className="font-bold text-xs leading-tight">
-                                {primaryEvent.courseCode}
-                              </div>
-                              <div className="text-[10px] opacity-90 mt-0.5">
-                                {primaryEvent.startTime}
-                              </div>
-                              {primaryEvent.duration > 30 && (
-                                <div className="text-[9px] opacity-75">
-                                  {Math.round(
-                                    (primaryEvent.duration / 60) * 2
-                                  ) / 2}
-                                  h
-                                </div>
-                              )}
-                            </div>
-                          )}
-
-                          {events.length > 1 && (
-                            <div
-                              className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border border-white"
-                              title={`Conflict: ${events
-                                .map((e) => e.courseCode)
-                                .join(", ")}`}
-                            />
-                          )}
-                        </td>
+                        />
                       );
                     })}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
 
-          <div className="mt-4 flex flex-wrap gap-4">
-            {Object.entries(courseColorMap).map(([courseCode, color]) => (
-              <div key={courseCode} className="flex items-center gap-2">
-                <div
-                  className="w-4 h-4 rounded border border-gray-300"
-                  style={{ backgroundColor: color }}
-                />
-                <span className="text-sm font-medium">{courseCode}</span>
-              </div>
-            ))}
-          </div>
+                  {/* Second 30-minute row */}
+                  <tr>
+                    {WEEKDAYS.map((day) => {
+                      const gridData =
+                        scheduleGrid[`${day}-${group.secondHalf.slotKey}`];
+
+                      if (gridData?.isStart) {
+                        return (
+                          <td
+                            key={`${day}-${group.secondHalf.slotKey}`}
+                            rowSpan={gridData.rowSpan}
+                            className="p-1 text-center relative"
+                            style={{
+                              backgroundColor: COLORS.primary,
+                              color: COLORS.white,
+                              border: `1px solid ${COLORS.borderStrong}`,
+                              verticalAlign: "middle",
+                              minHeight: "25px",
+                            }}
+                          >
+                            <div className="font-bold text-xs">
+                              {gridData.course.courseCode}
+                            </div>
+                            {gridData.course.room && (
+                              <div className="text-xs mt-1 opacity-90">
+                                {gridData.course.room}
+                              </div>
+                            )}
+                          </td>
+                        );
+                      }
+
+                      if (gridData && !gridData.isStart) {
+                        return null;
+                      }
+
+                      return (
+                        <td
+                          key={`${day}-${group.secondHalf.slotKey}`}
+                          className="p-1"
+                          style={{
+                            backgroundColor: COLORS.background,
+                            border: `1px solid ${COLORS.borderStrong}`,
+                            height: "25px",
+                          }}
+                        />
+                      );
+                    })}
+                  </tr>
+                </React.Fragment>
+              ))}
+            </tbody>
+          </table>
         </div>
       </CardContent>
     </Card>
   );
 };
 
-// ============= SCHEDULE HEADER =============
-interface ScheduleHeaderProps {
-  generatedSchedule: GeneratedSchedule;
-}
-
-const ScheduleHeader: React.FC<ScheduleHeaderProps> = ({
+export const ScheduleDisplay = ({
   generatedSchedule,
-}) => (
-  <Card>
-    <CardHeader>
-      <CardTitle className="flex items-center gap-2">
-        <CalendarDays className="h-5 w-5" />
-        Generated Schedule
-      </CardTitle>
-      <div className="text-sm text-muted-foreground">
-        {generatedSchedule.scheduledCourses} of {generatedSchedule.totalCourses}{" "}
-        courses scheduled • Generated:{" "}
-        {new Date(generatedSchedule.generatedAt).toLocaleString()}
-      </div>
-    </CardHeader>
-  </Card>
-);
-
-// ============= MAIN SCHEDULE DISPLAY =============
-interface ScheduleDisplayProps {
+}: {
   generatedSchedule: GeneratedSchedule | null;
-}
-
-export const ScheduleDisplay: React.FC<ScheduleDisplayProps> = ({
-  generatedSchedule,
 }) => {
-  if (!generatedSchedule) return null;
+  // Sample data with 30-minute precision
+  const sampleSchedule: GeneratedSchedule = {
+    schedule: [
+      {
+        courseCode: "CMSC 141 A",
+        room: "SCI 407",
+        startTime: "7:00 AM",
+        endTime: "9:00 AM",
+        days: ["Monday", "Thursday"],
+      },
+      {
+        courseCode: "CMSC 127 A",
+        room: "SCI 406",
+        startTime: "9:00 AM",
+        endTime: "10:00 AM",
+        days: ["Tuesday", "Friday"],
+      },
+      {
+        courseCode: "MATH 141 A",
+        room: "AS 233",
+        startTime: "10:00 AM",
+        endTime: "12:00 PM",
+        days: ["Monday", "Thursday"],
+      },
+      {
+        courseCode: "MATH 123 A",
+        room: "AS 235",
+        startTime: "1:00 PM",
+        endTime: "2:30 PM",
+        days: ["Monday", "Thursday"],
+      },
+      {
+        courseCode: "MATH 189 A",
+        room: "AS 235",
+        startTime: "1:00 PM",
+        endTime: "3:00 PM",
+        days: ["Tuesday", "Friday"],
+      },
+      {
+        courseCode: "PHILARTS 1 H",
+        room: "UG 218",
+        startTime: "3:00 PM",
+        endTime: "5:00 PM",
+        days: ["Monday", "Thursday"],
+      },
+      {
+        courseCode: "CMSC 127 A2",
+        room: "SCI 403",
+        startTime: "4:30 PM",
+        endTime: "6:00 PM",
+        days: ["Friday"],
+      },
+      {
+        courseCode: "ENG 102",
+        room: "HUM 201",
+        startTime: "2:30 PM",
+        endTime: "4:00 PM",
+        days: ["Wednesday"],
+      },
+    ],
+  };
 
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="mt-6 space-y-6"
-    >
-      <ScheduleHeader generatedSchedule={generatedSchedule} />
-      <ScheduleTable schedule={generatedSchedule.schedule} />
+  const displaySchedule = generatedSchedule || sampleSchedule;
 
-      {generatedSchedule.conflicts.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-red-600">
-              <AlertCircle className="h-4 w-4" />
-              Scheduling Conflicts ({generatedSchedule.conflicts.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {generatedSchedule.conflicts.map((conflict, index) => (
-                <div
-                  key={index}
-                  className="p-3 bg-red-50 border border-red-200 rounded text-sm text-red-700"
-                >
-                  {conflict}
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-    </motion.div>
-  );
+  if (!displaySchedule) {
+    return (
+      <div className="text-center py-16" style={{ color: COLORS.textLight }}>
+        <CalendarDays className="h-12 w-12 mx-auto mb-4 opacity-40" />
+        <p className="font-light">No schedule available</p>
+      </div>
+    );
+  }
+
+  return <ScheduleTable schedule={displaySchedule.schedule} />;
 };
 
-// Demo with sample data
-const sampleSchedule: GeneratedSchedule = {
-  schedule: [
-    {
-      courseCode: "CMSC 123",
-      startTime: "10:30 AM",
-      endTime: "1:30 PM",
-      days: ["Tuesday", "Thursday"],
-    },
-    {
-      courseCode: "CMSC 142 B",
-      startTime: "8:00 AM",
-      endTime: "9:00 AM",
-      days: ["Tuesday", "Friday"],
-    },
-    {
-      courseCode: "MATH 141 A",
-      startTime: "10:00 AM",
-      endTime: "11:00 AM",
-      days: ["Monday", "Thursday"],
-    },
-    {
-      courseCode: "CMSC 130 D",
-      startTime: "8:00 AM",
-      endTime: "10:00 AM",
-      days: ["Saturday"],
-    },
-    {
-      courseCode: "PHYS 101",
-      startTime: "2:00 PM",
-      endTime: "3:30 PM",
-      days: ["Monday", "Wednesday", "Friday"],
-    },
-  ],
-  conflicts: [],
-  totalCourses: 5,
-  scheduledCourses: 5,
-  algorithm: "Greedy",
-  generatedAt: new Date().toISOString(),
-};
-
-export default function Demo() {
-  return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6">Enhanced Schedule Display</h1>
-      <ScheduleDisplay generatedSchedule={sampleSchedule} />
-    </div>
-  );
-}
+export default ScheduleDisplay;
