@@ -35,7 +35,8 @@ const FeatureSection = () => {
       >
         <h2 className="zen-text-accent mb-4">Why SmartSched?</h2>
         <p className="zen-text-secondary max-w-2xl mx-auto">
-          Experience the perfect balance of simplicity and power in intelligent scheduling
+          Experience the perfect balance of simplicity and power in intelligent
+          scheduling
         </p>
       </motion.div>
 
@@ -65,10 +66,14 @@ const FeatureSection = () => {
                       <Icon className="w-8 h-8 text-primary/70 group-hover:text-primary transition-colors duration-300" />
                     </div>
                   </div>
-                  <CardTitle className="text-lg font-medium">{feature.title}</CardTitle>
+                  <CardTitle className="text-lg font-medium">
+                    {feature.title}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="pt-0">
-                  <p className="zen-text-secondary text-sm">{feature.description}</p>
+                  <p className="zen-text-secondary text-sm text-center">
+                    {feature.description}
+                  </p>
                 </CardContent>
               </Card>
             </motion.div>
