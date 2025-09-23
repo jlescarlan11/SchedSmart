@@ -8,7 +8,6 @@ const Footer = () => {
         <p className="zen-text-secondary text-sm tracking-wide">
           © {new Date().getFullYear()} John Lester Escarlan.
         </p>
-
         <p className="zen-text-secondary text-sm tracking-wide">
           Crafted with intention.
         </p>
