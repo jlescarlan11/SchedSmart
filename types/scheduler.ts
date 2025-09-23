@@ -1,12 +1,23 @@
+// types/scheduler.ts - Updated with dependencies
+
 export interface TimeSlot {
   days: string[];
   startTime: string;
   endTime: string;
 }
 
+// New dependency interface
+export interface CourseDependency {
+  courseCode: string;
+  slotIndex: number;
+  dependentCourseCode: string;
+  dependentSlotIndex: number;
+}
+
 export interface Course {
   courseCode: string;
   availableSlots: TimeSlot[];
+  dependencies?: CourseDependency[]; // Optional dependencies for this course
 }
 
 export interface ScheduleSlot {
@@ -22,8 +33,9 @@ export interface GeneratedSchedule {
   conflicts: string[];
   totalCourses: number;
   scheduledCourses: number;
-  algorithm: "backtracking" | "greedy";
+  algorithm: "backtracking";
   generatedAt: string;
+  dependencyViolations?: string[]; // Track dependency issues
 }
 
 export interface DayPreset {
@@ -40,4 +52,10 @@ export interface TimeSlotFormData {
   days: string[];
   startTime: string;
   endTime: string;
+}
+
+// New dependency form type
+export interface DependencyFormData {
+  dependentCourseCode: string;
+  dependentSlotIndex: number;
 }

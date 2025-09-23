@@ -22,6 +22,16 @@ export const courseSchema = z.object({
     ),
 });
 
+// New dependency validation schema
+export const dependencySchema = z.object({
+  dependentCourseCode: z.string().min(1, "Dependent course is required"),
+  dependentSlotIndex: z
+    .number()
+    .min(0, "Slot index must be non-negative")
+    .int("Slot index must be a whole number"),
+});
+
 // Export inferred types
 export type TimeSlotFormData = z.infer<typeof timeSlotSchema>;
 export type CourseFormData = z.infer<typeof courseSchema>;
+export type DependencyFormData = z.infer<typeof dependencySchema>;

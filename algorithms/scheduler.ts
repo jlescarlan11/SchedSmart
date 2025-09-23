@@ -1,13 +1,102 @@
-// algorithms/scheduler.ts
-
-import { Course, GeneratedSchedule, ScheduleSlot } from "../types/scheduler";
+import {
+  Course,
+  GeneratedSchedule,
+  ScheduleSlot,
+} from "../types/scheduler";
 import { checkTimeConflict } from "../utils/scheduler";
-import { BACKTRACKING_COURSE_LIMIT } from "../constants/scheduler";
 
 /**
- * Generates schedule using backtracking algorithm for optimal results
- * @param courses - Array of courses with available time slots
- * @returns Generated schedule with optimal course placement
+ * Gets all slots that must be scheduled together with the given slot
+ */
+const getMandatoryDependentSlots = (
+  course: Course,
+  slotIndex: number,
+  allCourses: Course[]
+): ScheduleSlot[] => {
+  if (!course.dependencies) return [];
+
+  const dependentSlots: ScheduleSlot[] = [];
+
+  // Get dependencies for this specific slot
+  const slotDependencies = course.dependencies.filter(
+    (dep) => dep.courseCode === course.courseCode && dep.slotIndex === slotIndex
+  );
+
+  for (const dependency of slotDependencies) {
+    const dependentCourse = allCourses.find(
+      (c) => c.courseCode === dependency.dependentCourseCode
+    );
+
+    if (dependentCourse?.availableSlots[dependency.dependentSlotIndex]) {
+      const dependentSlot =
+        dependentCourse.availableSlots[dependency.dependentSlotIndex];
+      dependentSlots.push({
+        courseCode: dependency.dependentCourseCode,
+        days: dependentSlot.days,
+        startTime: dependentSlot.startTime,
+        endTime: dependentSlot.endTime,
+        slotIndex: dependency.dependentSlotIndex,
+      });
+    }
+  }
+
+  return dependentSlots;
+};
+
+/**
+ * Checks if any slots conflict with each other
+ */
+const hasTimeConflicts = (slots: ScheduleSlot[]): boolean => {
+  for (let i = 0; i < slots.length; i++) {
+    for (let j = i + 1; j < slots.length; j++) {
+      if (checkTimeConflict(slots[i], slots[j])) {
+        return true;
+      }
+    }
+  }
+  return false;
+};
+
+/**
+ * Checks if adding new slots would create conflicts with existing schedule
+ */
+const wouldCreateConflicts = (
+  newSlots: ScheduleSlot[],
+  currentSchedule: ScheduleSlot[]
+): boolean => {
+  // Check conflicts between new slots and existing schedule
+  for (const newSlot of newSlots) {
+    for (const existingSlot of currentSchedule) {
+      if (checkTimeConflict(newSlot, existingSlot)) {
+        return true;
+      }
+    }
+  }
+
+  // Check conflicts within new slots themselves
+  return hasTimeConflicts(newSlots);
+};
+
+/**
+ * Checks if we're trying to schedule the same course-slot combination twice
+ */
+const hasDoubleScheduling = (
+  newSlots: ScheduleSlot[],
+  currentSchedule: ScheduleSlot[]
+): boolean => {
+  const existingSlotIds = new Set(
+    currentSchedule.map((slot) => `${slot.courseCode}-${slot.slotIndex}`)
+  );
+
+  const newSlotIds = newSlots.map(
+    (slot) => `${slot.courseCode}-${slot.slotIndex}`
+  );
+
+  return newSlotIds.some((id) => existingSlotIds.has(id));
+};
+
+/**
+ * Generates schedule using backtracking algorithm with dependency support
  */
 export const generateScheduleBacktracking = (
   courses: Course[]
@@ -45,123 +134,94 @@ export const generateScheduleBacktracking = (
         slotIndex: slotIndex,
       };
 
-      // Check if this slot conflicts with any in current schedule
-      const hasConflict = currentSchedule.some((existingSlot) =>
-        checkTimeConflict(potentialSlot, existingSlot)
+      // Get all dependent slots that must be scheduled with this slot
+      const mandatoryDependentSlots = getMandatoryDependentSlots(
+        course,
+        slotIndex,
+        courses
       );
 
-      if (!hasConflict) {
-        // Add this slot and recurse
-        currentSchedule.push(potentialSlot);
+      const slotsToAdd = [potentialSlot, ...mandatoryDependentSlots];
+
+      // Check various conflict conditions
+      if (
+        !wouldCreateConflicts(slotsToAdd, currentSchedule) &&
+        !hasDoubleScheduling(slotsToAdd, currentSchedule)
+      ) {
+        // Add all slots and recurse
+        currentSchedule.push(...slotsToAdd);
         backtrack(courseIndex + 1, currentSchedule);
-        currentSchedule.pop(); // Backtrack
+
+        // Backtrack: remove all added slots
+        for (let i = 0; i < slotsToAdd.length; i++) {
+          currentSchedule.pop();
+        }
       }
     }
 
-    // Also try skipping this course (explore not scheduling it)
+    // Also try skipping this course
     backtrack(courseIndex + 1, currentSchedule);
   };
 
   // Start backtracking
   backtrack(0, []);
 
-  // Generate conflicts list
-  const scheduledCourses = new Set(bestSchedule.map((slot) => slot.courseCode));
-  const conflicts = courses
-    .filter((course) => !scheduledCourses.has(course.courseCode))
-    .map(
-      (course) => `Could not schedule ${course.courseCode} in optimal solution`
+  // Generate analysis
+  const scheduledCourseSlots = new Set(
+    bestSchedule.map((slot) => `${slot.courseCode}-${slot.slotIndex}`)
+  );
+
+  const conflicts: string[] = [];
+  const dependencyViolations: string[] = [];
+
+  // Analyze results
+  courses.forEach((course) => {
+    const courseScheduled = bestSchedule.some(
+      (slot) => slot.courseCode === course.courseCode
     );
+
+    if (!courseScheduled) {
+      conflicts.push(`Could not schedule ${course.courseCode}`);
+    } else {
+      // Check dependency violations for scheduled courses
+      course.availableSlots.forEach((slot, slotIndex) => {
+        if (scheduledCourseSlots.has(`${course.courseCode}-${slotIndex}`)) {
+          const mandatoryDeps = getMandatoryDependentSlots(
+            course,
+            slotIndex,
+            courses
+          );
+
+          mandatoryDeps.forEach((dep) => {
+            if (
+              !scheduledCourseSlots.has(`${dep.courseCode}-${dep.slotIndex}`)
+            ) {
+              dependencyViolations.push(
+                `Dependency violation: ${course.courseCode} slot ${
+                  slotIndex + 1
+                } requires ${dep.courseCode} slot ${dep.slotIndex + 1}`
+              );
+            }
+          });
+        }
+      });
+    }
+  });
 
   return {
     schedule: bestSchedule,
     conflicts,
     totalCourses: courses.length,
-    scheduledCourses: bestSchedule.length,
+    scheduledCourses: new Set(bestSchedule.map((slot) => slot.courseCode)).size,
     algorithm: "backtracking",
     generatedAt: new Date().toISOString(),
+    dependencyViolations,
   };
 };
 
 /**
- * Generates schedule using greedy algorithm for faster results
- * @param courses - Array of courses with available time slots
- * @returns Generated schedule using greedy approach
+ * Main schedule generation function
  */
-export const generateScheduleGreedy = (
-  courses: Course[]
-): GeneratedSchedule => {
-  const schedule: ScheduleSlot[] = [];
-  const conflicts: string[] = [];
-
-  // Greedy approach - process courses in order
-  for (const course of courses) {
-    let slotAdded = false;
-
-    for (
-      let slotIndex = 0;
-      slotIndex < course.availableSlots.length;
-      slotIndex++
-    ) {
-      const slot = course.availableSlots[slotIndex];
-      const potentialSlot: ScheduleSlot = {
-        courseCode: course.courseCode,
-        days: slot.days,
-        startTime: slot.startTime,
-        endTime: slot.endTime,
-        slotIndex: slotIndex,
-      };
-
-      // Check for conflicts with already scheduled courses
-      const hasConflict = schedule.some((existingSlot) =>
-        checkTimeConflict(potentialSlot, existingSlot)
-      );
-
-      if (!hasConflict) {
-        schedule.push(potentialSlot);
-        slotAdded = true;
-        break;
-      }
-    }
-
-    if (!slotAdded) {
-      conflicts.push(
-        `Could not schedule ${course.courseCode} - all time slots conflict with existing courses`
-      );
-    }
-  }
-
-  return {
-    schedule,
-    conflicts,
-    totalCourses: courses.length,
-    scheduledCourses: schedule.length,
-    algorithm: "greedy",
-    generatedAt: new Date().toISOString(),
-  };
-};
-
-/**
- * Main schedule generation function that selects appropriate algorithm
- * @param courses - Array of courses with available time slots
- * @param forceAlgorithm - Optional algorithm to force usage
- * @returns Generated schedule
- */
-export const generateSchedule = (
-  courses: Course[],
-  forceAlgorithm?: "backtracking" | "greedy"
-): GeneratedSchedule => {
-  if (forceAlgorithm) {
-    return forceAlgorithm === "backtracking"
-      ? generateScheduleBacktracking(courses)
-      : generateScheduleGreedy(courses);
-  }
-
-  // Use backtracking for optimal results with smaller datasets
-  // Use greedy for faster results with larger datasets
-  if (courses.length <= BACKTRACKING_COURSE_LIMIT) {
-    return generateScheduleBacktracking(courses);
-  } else {
-    return generateScheduleGreedy(courses);
-  }
+export const generateSchedule = (courses: Course[]): GeneratedSchedule => {
+  return generateScheduleBacktracking(courses);
 };

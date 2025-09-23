@@ -15,23 +15,19 @@ const SchedulerSection: React.FC = () => {
     // State
     courses,
     currentCourse,
+    currentSlotIndex,
+    editingCourseIndex,
     selectedDays,
     generatedSchedule,
 
     // Forms
     courseForm,
     timeSlotForm,
+    dependencyForm,
 
     // Handlers
     dayHandlers,
-    courseHandlers: {
-      onCourseSubmit,
-      onTimeSlotSubmit,
-      addCourse,
-      removeTimeSlot,
-      updateCurrentCourseCode,
-      removeCourse,
-    },
+    courseHandlers,
     scheduleHandlers: { handleGenerateSchedule, resetScheduler },
 
     // Computed values
@@ -67,20 +63,34 @@ const SchedulerSection: React.FC = () => {
           {/* Course Code Input */}
           <CourseCodeInput
             form={courseForm}
-            onSubmit={onCourseSubmit}
-            onCodeChange={updateCurrentCourseCode}
+            onSubmit={courseHandlers.onCourseSubmit}
+            onCodeChange={courseHandlers.updateCurrentCourseCode}
+            editingCourseIndex={editingCourseIndex}
+            onCancelEdit={courseHandlers.cancelEdit}
           />
 
-          {/* Time Slot Input */}
+          {/* Time Slot Input with Dependencies */}
           <TimeSlotInput
             form={timeSlotForm}
+            dependencyForm={dependencyForm}
             selectedDays={selectedDays}
             timeSlots={currentCourse.availableSlots}
-            onSubmit={onTimeSlotSubmit}
-            onRemoveSlot={removeTimeSlot}
-            onAddCourse={addCourse}
+            currentCourse={currentCourse}
+            courses={courses}
+            currentSlotIndex={currentSlotIndex}
+            editingCourseIndex={editingCourseIndex}
+            onSubmit={courseHandlers.onTimeSlotSubmit}
+            onRemoveSlot={courseHandlers.removeTimeSlot}
+            onAddCourse={courseHandlers.addCourse}
+            onCancelEdit={courseHandlers.cancelEdit}
             canAddCourse={canAddCourse}
             dayHandlers={dayHandlers}
+            courseHandlers={{
+              onDependencySubmit: courseHandlers.onDependencySubmit,
+              removeDependency: courseHandlers.removeDependency,
+              selectSlotForDependencies:
+                courseHandlers.selectSlotForDependencies,
+            }}
           />
         </div>
 
@@ -88,7 +98,8 @@ const SchedulerSection: React.FC = () => {
           {/* Course List and Schedule Generation */}
           <CourseList
             courses={courses}
-            onRemoveCourse={removeCourse}
+            onRemoveCourse={courseHandlers.removeCourse}
+            onEditCourse={courseHandlers.editCourse}
             onGenerateSchedule={handleGenerateSchedule}
             canGenerateSchedule={canGenerateSchedule}
           />

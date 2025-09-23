@@ -27,3 +27,14 @@ export const getDayAbbreviations = (days: string[]): string[] => {
 export const formatTimeRange = (startTime: string, endTime: string): string => {
   return `${startTime} - ${endTime}`;
 };
+
+/**
+ * Format a slot (days and time range) for display
+ */
+export const formatSlot = (slot: {
+  days: string[];
+  startTime: string;
+  endTime: string;
+}): string => {
+  return `${slot.days.join(", ")} ${formatTimeRange(slot.startTime, slot.endTime)}`;
+};

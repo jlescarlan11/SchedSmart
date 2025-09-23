@@ -2,8 +2,6 @@
 
 import { ScheduleSlot, GeneratedSchedule } from "../types/scheduler";
 import { SCHEDULE_FILENAME } from "../constants/scheduler";
-// Import the algorithms
-import { generateSchedule as generateScheduleAlgo } from "@/algorithms/scheduler";
 
 /**
  * Converts 12-hour time format to 24-hour decimal format
@@ -88,6 +86,3 @@ export const isValidTimeSlot = (
 
   return endHour > startHour;
 };
-
-// Re-export the main schedule generation function
-export const generateSchedule = generateScheduleAlgo;
