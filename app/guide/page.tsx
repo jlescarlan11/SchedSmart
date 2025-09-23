@@ -305,19 +305,14 @@ export default function GuidePage() {
         >
           <div className="zen-surface p-12 zen-shadow-soft text-center">
             <h2 className="zen-text-accent mb-6">Ready to Get Started?</h2>
-            <p className="zen-text-secondary mb-8 max-w-2xl mx-auto leading-relaxed text-center">
+            <p className="zen-text-secondary mb-8 max-w-2xl mx-auto leading-relaxed">
               Now that you know how SmartSched works, it&apos;s time to create
               your perfect schedule. Start by adding your first activity and
               experience the power of intelligent scheduling.
             </p>
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
               <Button asChild size="lg">
-                <Link href="/">
-                  Start Scheduling
-                </Link>
+                <Link href="/">Start Scheduling</Link>
               </Button>
             </motion.div>
           </div>

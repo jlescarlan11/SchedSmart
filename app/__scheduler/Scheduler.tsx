@@ -45,7 +45,7 @@ const SchedulerSection: React.FC = () => {
         className="text-center mb-16"
       >
         <h2 className="zen-text-accent mb-4">Smart Scheduler</h2>
-        <p className="zen-text-secondary max-w-2xl mx-auto text-center">
+        <p className="zen-text-secondary max-w-2xl mx-auto">
           Add your activities, set time slots, and let our intelligent algorithm
           create your perfect schedule
         </p>

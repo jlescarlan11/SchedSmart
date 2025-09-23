@@ -74,7 +74,7 @@ export default function AboutPage() {
           <div className="zen-surface p-12 zen-shadow-soft">
             <h2 className="text-center mb-12 zen-text-accent">Our Mission</h2>
             <div className="max-w-4xl mx-auto zen-spacing-md">
-              <p className="text-center zen-text-secondary text-lg leading-relaxed">
+              <p className="zen-text-secondary text-lg leading-relaxed">
                 To create intelligent scheduling tools that eliminate the
                 complexity of time management, allowing people to focus on what
                 matters most: their goals and priorities. We achieve this
@@ -165,7 +165,7 @@ export default function AboutPage() {
                     </p>
                   </CardHeader>
                   <CardContent className="pt-0">
-                    <p className="zen-text-secondary leading-relaxed text-center">
+                    <p className="zen-text-secondary leading-relaxed">
                       {member.description}
                     </p>
                   </CardContent>
