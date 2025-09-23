@@ -2,6 +2,8 @@
 
 import { motion } from "motion/react";
 import { Calendar, Users, Zap, Heart } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 
 const values = [
   {
@@ -55,7 +57,7 @@ export default function AboutPage() {
           </div>
         </motion.div>
 
-        <div className="zen-divider" />
+        <Separator className="my-16" />
 
         {/* Mission Section */}
         <motion.div
@@ -91,15 +93,20 @@ export default function AboutPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.6 + index * 0.1, ease: "easeOut" }}
-                className="zen-card text-center zen-spacing-sm"
               >
-                <div className="zen-flex-center mb-6">
-                  <div className="p-4 rounded-2xl bg-primary/5 border border-primary/10">
-                    <value.icon className="w-8 h-8 text-primary/70" />
-                  </div>
-                </div>
-                <h3 className="text-lg font-medium zen-text-primary mb-4">{value.title}</h3>
-                <p className="zen-text-secondary text-sm leading-relaxed">{value.description}</p>
+                <Card className="text-center h-full border-border/20 bg-card/50 backdrop-blur-sm">
+                  <CardHeader className="pb-4">
+                    <div className="zen-flex-center mb-4">
+                      <div className="p-4 rounded-2xl bg-primary/5 border border-primary/10">
+                        <value.icon className="w-8 h-8 text-primary/70" />
+                      </div>
+                    </div>
+                    <CardTitle className="text-lg font-medium">{value.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <p className="zen-text-secondary text-sm leading-relaxed">{value.description}</p>
+                  </CardContent>
+                </Card>
               </motion.div>
             ))}
           </div>
@@ -120,18 +127,23 @@ export default function AboutPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 1.0 + index * 0.1, ease: "easeOut" }}
-                className="zen-card text-center zen-spacing-sm"
               >
-                <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 zen-flex-center">
-                  <span className="text-2xl font-light zen-text-primary">
-                    {member.name.split(' ').map(n => n[0]).join('')}
-                  </span>
-                </div>
-                <h3 className="text-xl font-medium zen-text-primary mb-2">{member.name}</h3>
-                <p className="zen-text-accent text-sm font-medium mb-4 tracking-wide uppercase text-center">
-                  {member.role}
-                </p>
-                <p className="zen-text-secondary leading-relaxed text-center">{member.description}</p>
+                <Card className="text-center border-border/20 bg-card/50 backdrop-blur-sm">
+                  <CardHeader className="pb-4">
+                    <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 zen-flex-center">
+                      <span className="text-2xl font-light zen-text-primary">
+                        {member.name.split(' ').map(n => n[0]).join('')}
+                      </span>
+                    </div>
+                    <CardTitle className="text-xl font-medium">{member.name}</CardTitle>
+                    <p className="zen-text-accent text-sm font-medium tracking-wide uppercase text-center">
+                      {member.role}
+                    </p>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <p className="zen-text-secondary leading-relaxed text-center">{member.description}</p>
+                  </CardContent>
+                </Card>
               </motion.div>
             ))}
           </div>

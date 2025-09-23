@@ -9,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 const images = [
   {
@@ -87,13 +88,15 @@ const ActivityCarousel = () => {
         {/* Mobile indicators */}
         <div className="flex justify-center mt-4 space-x-2">
           {images.map((_, index) => (
-            <button
+            <Button
               key={index}
+              variant="ghost"
+              size="icon"
               onClick={() => setSelectedImage(index)}
-              className={`w-2 h-2 rounded-full transition-colors duration-200 ${
+              className={`w-3 h-3 p-0 rounded-full transition-colors duration-200 ${
                 index === selectedImage
-                  ? "bg-primary"
-                  : "bg-muted-foreground/30"
+                  ? "bg-primary hover:bg-primary/90"
+                  : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
               }`}
               aria-label={`Go to slide ${index + 1}`}
             />

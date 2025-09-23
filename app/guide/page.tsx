@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
+import Link from "next/link";
 import {
   BookOpen,
   Clock,
@@ -12,6 +13,8 @@ import {
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 
 const steps = [
   {
@@ -151,7 +154,7 @@ export default function GuidePage() {
           </div>
         </motion.div>
 
-        <div className="zen-divider" />
+        <Separator className="my-16" />
 
         {/* Steps Section */}
         <motion.div
@@ -307,14 +310,16 @@ export default function GuidePage() {
               your perfect schedule. Start by adding your first activity and
               experience the power of intelligent scheduling.
             </p>
-            <motion.a
-              href="/"
+            <motion.div
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="inline-block zen-button-primary"
             >
-              Start Scheduling
-            </motion.a>
+              <Button asChild size="lg">
+                <Link href="/">
+                  Start Scheduling
+                </Link>
+              </Button>
+            </motion.div>
           </div>
         </motion.div>
       </div>

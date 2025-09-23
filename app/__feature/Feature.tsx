@@ -2,6 +2,7 @@
 
 import { motion } from "motion/react";
 import { LuCheckCheck, LuCloudLightning, LuTimer } from "react-icons/lu";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const features = [
   {
@@ -55,15 +56,21 @@ const FeatureSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: idx * 0.1, ease: "easeOut" }}
-              className="zen-card text-center zen-spacing-sm group"
+              className="group"
             >
-              <div className="zen-flex-center mb-6">
-                <div className="p-4 rounded-2xl bg-primary/5 border border-primary/10 group-hover:bg-primary/10 group-hover:border-primary/20 transition-all duration-300">
-                  <Icon className="w-8 h-8 text-primary/70 group-hover:text-primary transition-colors duration-300" />
-                </div>
-              </div>
-              <h3 className="zen-text-primary font-medium text-lg mb-3">{feature.title}</h3>
-              <p className="zen-text-secondary text-sm text-center">{feature.description}</p>
+              <Card className="text-center h-full transition-all duration-300 hover:shadow-md border-border/20 bg-card/50 backdrop-blur-sm">
+                <CardHeader className="pb-4">
+                  <div className="zen-flex-center mb-2">
+                    <div className="p-4 rounded-2xl bg-primary/5 border border-primary/10 group-hover:bg-primary/10 group-hover:border-primary/20 transition-all duration-300">
+                      <Icon className="w-8 h-8 text-primary/70 group-hover:text-primary transition-colors duration-300" />
+                    </div>
+                  </div>
+                  <CardTitle className="text-lg font-medium">{feature.title}</CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <p className="zen-text-secondary text-sm">{feature.description}</p>
+                </CardContent>
+              </Card>
             </motion.div>
           );
         })}

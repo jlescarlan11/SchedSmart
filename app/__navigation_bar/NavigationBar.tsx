@@ -9,6 +9,7 @@ import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React, { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 
 const NavigationBar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -85,9 +86,11 @@ const NavigationBar: React.FC = () => {
           </div>
 
           {/* Mobile Menu Button */}
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={() => setIsOpen(!isOpen)}
-            className="lg:hidden z-50 relative p-2 rounded-xl hover:bg-accent/20 transition-colors zen-focus-ring"
+            className="lg:hidden z-50 relative"
             aria-label={isOpen ? "Close menu" : "Open menu"}
           >
             <motion.div
@@ -100,7 +103,7 @@ const NavigationBar: React.FC = () => {
                 <Menu className="w-6 h-6" />
               )}
             </motion.div>
-          </button>
+          </Button>
         </nav>
       </header>
 
@@ -134,13 +137,14 @@ const NavigationBar: React.FC = () => {
               <div className="flex flex-col h-full">
                 {/* Header with Close Button */}
                 <div className="h-28 flex items-center justify-end px-6 border-b border-border/10">
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     onClick={() => setIsOpen(false)}
-                    className="p-2 rounded-xl hover:bg-accent/20 transition-colors zen-focus-ring"
                     aria-label="Close menu"
                   >
                     <X className="w-6 h-6" />
-                  </button>
+                  </Button>
                 </div>
 
                 {/* Navigation Links */}

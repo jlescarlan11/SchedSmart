@@ -4,6 +4,7 @@ import { motion } from "motion/react";
 import Link from "next/link";
 import ActivityCarousel from "./ActivityCarousel";
 import { Col2, Col3, Grid } from "@/components/layout/grid";
+import { Button } from "@/components/ui/button";
 
 const HeroSection = () => {
   return (
@@ -30,22 +31,26 @@ const HeroSection = () => {
               className="flex flex-col sm:flex-row gap-4"
             >
               <Link href="/#scheduler" className="flex-1">
-                <motion.button
+                <motion.div
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full zen-button-primary zen-focus-ring"
+                  className="w-full"
                 >
-                  Schedule Now
-                </motion.button>
+                  <Button size="lg" className="w-full">
+                    Schedule Now
+                  </Button>
+                </motion.div>
               </Link>
               <Link href="/guide" className="flex-1">
-                <motion.button
+                <motion.div
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full zen-button zen-focus-ring"
+                  className="w-full"
                 >
-                  Learn How
-                </motion.button>
+                  <Button variant="outline" size="lg" className="w-full">
+                    Learn How
+                  </Button>
+                </motion.div>
               </Link>
             </motion.div>
           </motion.div>

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Separator } from "@/components/ui/separator";
 import { ANIMATION_CONFIG } from "@/constants/scheduler";
 import { getDayAbbreviation } from "@/utils";
 import type { Course, GeneratedSchedule } from "@/types/scheduler";
@@ -108,7 +109,8 @@ const CourseItem: React.FC<{
 
         {/* Show dependencies if any */}
         {dependentCourses.size > 0 && (
-          <div className="mt-2 pt-2 border-t border-border/50">
+          <div className="mt-2 pt-2">
+            <Separator className="mb-2" />
             <div className="text-xs text-muted-foreground mb-1">
               Dependencies:
             </div>

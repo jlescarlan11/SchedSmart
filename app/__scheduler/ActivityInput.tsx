@@ -23,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 
 import { TimeSlotSelector } from "./TimeSlotSelector";
 import { TimeSlotList } from "./time-slots/TimeSlotList";
@@ -204,7 +205,8 @@ export const ActivityInput: React.FC<ActivityInputProps> = ({
           </Form>
 
           {/* Divider */}
-          <div className="border-t pt-6">
+          <Separator className="my-6" />
+          <div className="pt-0">
             <div className="flex items-center gap-2 mb-4">
               <Clock className="h-5 w-5" />
               <h3 className="font-medium">Time Slots</h3>
@@ -240,7 +242,8 @@ export const ActivityInput: React.FC<ActivityInputProps> = ({
           </div>
 
           {/* Divider for Dependencies */}
-          <div className="border-t pt-6">
+          <Separator className="my-6" />
+          <div className="pt-0">
             <div className="flex items-center gap-2 mb-4">
               <Link className="h-5 w-5" />
               <h3 className="font-medium">Activity Dependencies</h3>
@@ -405,7 +408,8 @@ export const ActivityInput: React.FC<ActivityInputProps> = ({
           </div>
 
           {/* Divider for Add Course Section */}
-          <div className="border-t pt-6">
+          <Separator className="my-6" />
+          <div className="pt-0">
             <div className="flex gap-2">
               <Button
                 onClick={onAddCourse}
