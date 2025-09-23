@@ -3,7 +3,7 @@ import {
   GeneratedSchedule,
   ScheduleSlot,
 } from "../types/scheduler";
-import { checkTimeConflict } from "../utils/scheduler";
+import { checkTimeConflict } from "../utils";
 
 /**
  * Gets all slots that must be scheduled together with the given slot

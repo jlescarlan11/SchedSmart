@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/select";
 import { DAY_PRESETS, DAYS_OF_WEEK, TIME_OPTIONS } from "@/constants/scheduler";
 import { TimeSlotFormData } from "@/types/scheduler";
-import { getDayAbbreviation } from "@/utils/dateHelpers";
+import { getDayAbbreviation } from "@/utils";
 import React from "react";
 import { Control } from "react-hook-form";
 

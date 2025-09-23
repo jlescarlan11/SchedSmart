@@ -5,26 +5,15 @@ import { generateSchedule } from "../algorithms/scheduler";
 export const useScheduleGeneration = (courses: Course[]) => {
   const [generatedSchedule, setGeneratedSchedule] =
     useState<GeneratedSchedule | null>(null);
-  const [isGenerating, setIsGenerating] = useState(false);
 
-  const handleGenerateSchedule = async () => {
+  const handleGenerateSchedule = () => {
     if (courses.length === 0) return;
 
-    setIsGenerating(true);
-    try {
-      // Add a small delay to show loading state
-      await new Promise((resolve) => setTimeout(resolve, 100));
-      const result = generateSchedule(courses);
-      setGeneratedSchedule(result);
+    const result = generateSchedule(courses);
+    setGeneratedSchedule(result);
 
-      // Note: Image auto-download is now handled in ScheduleDisplay component
-      // via useEffect when generatedSchedule changes
-    } catch (error) {
-      console.error("Error generating schedule:", error);
-      // You might want to show an error toast here
-    } finally {
-      setIsGenerating(false);
-    }
+    // Note: Image auto-download is now handled in ScheduleDisplay component
+    // via useEffect when generatedSchedule changes
   };
 
   const resetSchedule = () => {
@@ -33,7 +22,6 @@ export const useScheduleGeneration = (courses: Course[]) => {
 
   return {
     generatedSchedule,
-    isGenerating,
     handleGenerateSchedule,
     resetSchedule,
   };

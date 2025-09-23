@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ANIMATION_CONFIG } from "@/constants/scheduler";
-import { getDayAbbreviation } from "@/utils/dateHelpers";
+import { getDayAbbreviation } from "@/utils";
 import type { Course } from "@/types/scheduler";
 
 interface CourseListProps {

@@ -53,7 +53,6 @@ export const useScheduler = () => {
     editingCourseIndex: courseHandlers.editingCourseIndex,
     selectedDays: dayHandlers.selectedDays,
     generatedSchedule: scheduleHandlers.generatedSchedule,
-    isGenerating: scheduleHandlers.isGenerating, // Added loading state
 
     // Forms
     courseForm,

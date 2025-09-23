@@ -5,8 +5,8 @@ import { Calendar, RefreshCw } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useScheduler } from "@/hooks/useScheduler";
-import { CourseCodeInput } from "./CourseCodeInput";
-import { TimeSlotInput } from "./TimeSlotInput";
+import { CourseInput } from "./CourseInput";
+import { DependencyInput } from "./DependencyInput";
 import { CourseList } from "./CourseList";
 import { ScheduleDisplay } from "./ScheduleDisplay";
 
@@ -19,7 +19,6 @@ const SchedulerSection: React.FC = () => {
     editingCourseIndex,
     selectedDays,
     generatedSchedule,
-    isGenerating,
 
     // Forms
     courseForm,
@@ -41,57 +40,38 @@ const SchedulerSection: React.FC = () => {
     <div className="section-spacing min-h-screen p-6">
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
         <div className="lg:col-span-2">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <Calendar className="h-8 w-8 text-primary" />
-              <h1 className="text-3xl font-bold">Course Scheduler</h1>
-            </div>
-
-            {hasData && (
-              <Button
-                onClick={resetScheduler}
-                variant="outline"
-                size="sm"
-                className="flex items-center gap-2"
-              >
-                <RefreshCw className="h-4 w-4" />
-                Reset
-              </Button>
-            )}
-          </div>
-
-          {/* Course Code Input */}
-          <CourseCodeInput
-            form={courseForm}
-            onSubmit={courseHandlers.onCourseSubmit}
-            onCodeChange={courseHandlers.updateCurrentCourseCode}
-            editingCourseIndex={editingCourseIndex}
-            onCancelEdit={courseHandlers.cancelEdit}
-          />
-
-          {/* Time Slot Input with Dependencies */}
-          <TimeSlotInput
-            form={timeSlotForm}
-            dependencyForm={dependencyForm}
+          {/* Unified Course Input */}
+          <CourseInput
+            courseForm={courseForm}
+            timeSlotForm={timeSlotForm}
             selectedDays={selectedDays}
             timeSlots={currentCourse.availableSlots}
             currentCourse={currentCourse}
-            courses={courses}
-            currentSlotIndex={currentSlotIndex}
             editingCourseIndex={editingCourseIndex}
-            onSubmit={courseHandlers.onTimeSlotSubmit}
+            currentSlotIndex={currentSlotIndex}
+            canAddCourse={canAddCourse}
+            hasData={hasData}
+            onCourseSubmit={courseHandlers.onCourseSubmit}
+            onTimeSlotSubmit={courseHandlers.onTimeSlotSubmit}
+            onCodeChange={courseHandlers.updateCurrentCourseCode}
             onRemoveSlot={courseHandlers.removeTimeSlot}
             onAddCourse={courseHandlers.addCourse}
             onCancelEdit={courseHandlers.cancelEdit}
-            canAddCourse={canAddCourse}
+            onReset={resetScheduler}
             dayHandlers={dayHandlers}
             courseHandlers={{
-              onDependencySubmit: courseHandlers.onDependencySubmit,
-              removeDependency: courseHandlers.removeDependency,
-              selectSlotForDependencies:
-                courseHandlers.selectSlotForDependencies,
+              selectSlotForDependencies: courseHandlers.selectSlotForDependencies,
             }}
+          />
+
+          {/* Dependencies Input */}
+          <DependencyInput
+            form={dependencyForm}
+            currentCourse={currentCourse}
+            courses={courses}
+            onSubmit={courseHandlers.onDependencySubmit}
+            onRemoveDependency={courseHandlers.removeDependency}
+            currentSlotIndex={currentSlotIndex}
           />
         </div>
 
@@ -105,11 +85,8 @@ const SchedulerSection: React.FC = () => {
             canGenerateSchedule={canGenerateSchedule}
           />
 
-          {/* Generated Schedule Display with Loading */}
-          <ScheduleDisplay
-            generatedSchedule={generatedSchedule}
-            isGenerating={isGenerating}
-          />
+          {/* Generated Schedule Display */}
+          <ScheduleDisplay generatedSchedule={generatedSchedule} />
         </div>
       </div>
     </div>

@@ -23,12 +23,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import type {
-  Course,
-  CourseDependency,
-  DependencyFormData,
-} from "@/types/scheduler";
-import { formatSlot } from "@/utils/dateHelpers";
+import type { Course, DependencyFormData } from "@/types/scheduler";
+import { formatSlot } from "@/utils";
 
 interface DependencyInputProps {
   form: UseFormReturn<DependencyFormData>;
@@ -70,21 +66,10 @@ export const DependencyInput: React.FC<DependencyInputProps> = ({
         currentSlotDependencies: dependencies,
         selectedCourse: selected,
       };
-    }, [
-      courses,
-      currentCourse,
-      currentSlotIndex,
-      form.watch("dependentCourseCode"),
-    ]);
-
-  const formatTimeSlot = (course: Course, slotIndex: number): string => {
-    const slot = course.availableSlots[slotIndex];
-    return slot ? formatSlot(slot) : "Unknown slot";
-  };
+    }, [courses, currentCourse, currentSlotIndex, form]);
 
   const handleCourseChange = (courseCode: string) => {
     form.setValue("dependentCourseCode", courseCode);
-    // Reset dependent slot when course changes - proper type handling
     form.resetField("dependentSlotIndex");
   };
 
@@ -133,9 +118,7 @@ export const DependencyInput: React.FC<DependencyInputProps> = ({
           {currentSlotIndex + 1}:
           <br />
           <span className="text-xs">
-            {currentSlot
-              ? formatTimeSlot(currentCourse, currentSlotIndex)
-              : "Invalid slot"}
+            {currentSlot ? formatSlot(currentSlot) : "Invalid slot"}
           </span>
         </div>
 
@@ -194,8 +177,7 @@ export const DependencyInput: React.FC<DependencyInputProps> = ({
                         <SelectContent>
                           {selectedCourse?.availableSlots.map((slot, index) => (
                             <SelectItem key={index} value={index.toString()}>
-                              Slot {index + 1}:{" "}
-                              {formatTimeSlot(selectedCourse, index)}
+                              Slot {index + 1}: {formatSlot(slot)}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -250,9 +232,10 @@ export const DependencyInput: React.FC<DependencyInputProps> = ({
                       <br />
                       <span className="text-xs">
                         {depCourse
-                          ? formatTimeSlot(
-                              depCourse,
-                              dependency.dependentSlotIndex
+                          ? formatSlot(
+                              depCourse.availableSlots[
+                                dependency.dependentSlotIndex
+                              ]
                             )
                           : "Course not found"}
                       </span>
