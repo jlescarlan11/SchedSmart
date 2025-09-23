@@ -13,7 +13,7 @@ import { isValidTimeSlot } from "../utils";
 /**
  * Manages course-related actions (add, remove, edit, etc.)
  */
-export const useCourseActions = (
+export const useActivityActions = (
   courses: Course[],
   currentCourse: Course,
   editingCourseIndex: number | null,

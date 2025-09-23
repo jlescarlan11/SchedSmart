@@ -1,35 +1,63 @@
-import { Button } from "@/components/ui/button";
+"use client";
+
+import { motion } from "motion/react";
 import Link from "next/link";
-import CourseCarousel from "./CourseCarousel";
+import ActivityCarousel from "./ActivityCarousel";
 import { Col2, Col3, Grid } from "@/components/layout/grid";
 
 const HeroSection = () => {
   return (
-    <div className="section-spacing">
+    <div className="wrapper section-spacing">
       <Grid>
         <Col2>
-          <div className="flex flex-col gap-8">
-            <h1>Schedule Courses in One Tap</h1>
-            <p>
-              Join 20 million students using the #1 course scheduling tool for
-              effortless academic planning.
-            </p>
-            <div className="flex flex-col md:flex-row md:items-center gap-4">
-              <Link href="/schedule">
-                <Button size="lg" className="w-full">
-                  Schedule Now
-                </Button>
-              </Link>
-              <Link href="/guide">
-                <Button size="lg" variant="outline" className="w-full">
-                  Scheduling Guide
-                </Button>
-              </Link>
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="zen-spacing-lg"
+          >
+            <div className="zen-spacing-md">
+              <h1 className="zen-text-primary">Smart Scheduling with Intention</h1>
+              <p className="zen-text-secondary text-lg leading-relaxed">
+                Experience mindful planning with our intelligent scheduling tool. 
+                Designed for focus, and effortless organization of any activity.
+              </p>
             </div>
-          </div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3, ease: "easeOut" }}
+              className="flex flex-col sm:flex-row gap-4"
+            >
+              <Link href="/#scheduler" className="flex-1">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="w-full zen-button-primary zen-focus-ring"
+                >
+                  Schedule Now
+                </motion.button>
+              </Link>
+              <Link href="/guide" className="flex-1">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="w-full zen-button zen-focus-ring"
+                >
+                  Learn How
+                </motion.button>
+              </Link>
+            </motion.div>
+          </motion.div>
         </Col2>
         <Col3>
-          <CourseCarousel />
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+          >
+            <ActivityCarousel />
+          </motion.div>
         </Col3>
       </Grid>
     </div>

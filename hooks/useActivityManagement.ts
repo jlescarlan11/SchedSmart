@@ -7,8 +7,8 @@ import {
 } from "../types/scheduler";
 
 // Import the focused hooks
-import { useCourseState } from "./useCourseState";
-import { useCourseActions } from "./useCourseActions";
+import { useActivityState } from "./useActivityState";
+import { useActivityActions } from "./useActivityActions";
 import { useTimeSlotActions } from "./useTimeSlotActions";
 import { useDependencyActions } from "./useDependencyActions";
 
@@ -16,7 +16,7 @@ import { useDependencyActions } from "./useDependencyActions";
  * Main course management hook that orchestrates all course-related functionality
  * This is a cleaner, more organized version that delegates to focused hooks
  */
-export const useCourseManagement = (
+export const useActivityManagement = (
   courseForm: UseFormReturn<CourseFormData>,
   timeSlotForm: UseFormReturn<TimeSlotFormData>,
   dependencyForm: UseFormReturn<DependencyFormData>,
@@ -34,10 +34,10 @@ export const useCourseManagement = (
     setEditingCourseIndex,
     resetCurrentCourse,
     resetAllCourses,
-  } = useCourseState();
+  } = useActivityState();
 
   // Course actions (add, remove, edit)
-  const courseActions = useCourseActions(
+  const courseActions = useActivityActions(
     courses,
     currentCourse,
     editingCourseIndex,

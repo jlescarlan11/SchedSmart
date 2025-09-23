@@ -1,13 +1,13 @@
 import { useForm } from "react-hook-form";
-import { useCourseForm } from "./useCourseForm";
+import { useActivityForm } from "./useActivityForm";
 import { useDaySelection } from "./useDaySelection";
-import { useCourseManagement } from "./useCourseManagement";
+import { useActivityManagement } from "./useActivityManagement";
 import { useScheduleGeneration } from "./useScheduleGeneration";
 import type { DependencyFormData } from "../types/scheduler";
 
 export const useScheduler = () => {
   // Forms
-  const { courseForm, timeSlotForm } = useCourseForm();
+  const { courseForm, timeSlotForm } = useActivityForm();
   const dependencyForm = useForm<DependencyFormData>({
     defaultValues: {
       dependentCourseCode: "",
@@ -17,7 +17,7 @@ export const useScheduler = () => {
 
   // Sub-hooks
   const dayHandlers = useDaySelection(timeSlotForm);
-  const courseHandlers = useCourseManagement(
+  const courseHandlers = useActivityManagement(
     courseForm,
     timeSlotForm,
     dependencyForm,

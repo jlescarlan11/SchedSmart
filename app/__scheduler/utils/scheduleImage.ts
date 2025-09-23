@@ -1,7 +1,7 @@
 // Canvas schedule image generation extracted from ScheduleDisplay
 
 type ScheduleSlot = {
-  courseCode: string;
+  courseCode: string; // Activity name/code
   room?: string;
   startTime: string;
   endTime: string;

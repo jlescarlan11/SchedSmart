@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { CourseFormData, TimeSlotFormData } from "../types/scheduler";
 import { courseSchema, timeSlotSchema } from "../validation/scheduler";
 
-export const useCourseForm = () => {
+export const useActivityForm = () => {
   const courseForm = useForm<CourseFormData>({
     resolver: zodResolver(courseSchema),
     defaultValues: { courseCode: "" },

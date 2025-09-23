@@ -118,6 +118,10 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 7rem; /* Account for fixed navigation bar height (h-28 = 7rem) */
+  }
   body {
     @apply bg-background text-foreground;
   }
@@ -134,12 +138,101 @@
 
 @layer components {
   .wrapper {
-    @apply max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8;
+    @apply max-w-6xl w-full mx-auto px-6 sm:px-8 lg:px-12;
   }
   .section-spacing {
-    @apply mt-32;
+    @apply mt-24 lg:mt-24;
   }
   .info-text {
-    @apply text-xs uppercase tracking-[0.2em] text-foreground/80 font-light;
+    @apply text-xs uppercase tracking-[0.2em] text-foreground/60 font-light;
+  }
+  
+  /* Japanese Minimalism Components */
+  .zen-container {
+    @apply bg-background/95 backdrop-blur-sm border border-border/20 rounded-2xl;
+  }
+  
+  .zen-card {
+    @apply bg-card/50 backdrop-blur-sm border border-border/10 rounded-xl p-8 hover:bg-card/70 transition-all duration-500 ease-out;
+  }
+  
+  .zen-surface {
+    @apply bg-background/80 backdrop-blur-md border border-border/5 rounded-3xl;
+  }
+  
+  .zen-text-primary {
+    @apply text-foreground/90 font-light tracking-wide;
+  }
+  
+  .zen-text-secondary {
+    @apply text-foreground/60 font-extralight tracking-wider;
+  }
+  
+  .zen-text-accent {
+    @apply text-primary/80 font-normal tracking-wide;
+  }
+  
+  .zen-spacing-xs {
+    @apply space-y-2;
+  }
+  
+  .zen-spacing-sm {
+    @apply space-y-4;
+  }
+  
+  .zen-spacing-md {
+    @apply space-y-8;
+  }
+  
+  .zen-spacing-lg {
+    @apply space-y-12;
+  }
+  
+  .zen-spacing-xl {
+    @apply space-y-20;
+  }
+  
+  .zen-button {
+    @apply bg-transparent border border-border/30 text-foreground/80 hover:bg-accent/20 hover:border-border/50 hover:text-foreground transition-all duration-300 ease-out rounded-xl px-8 py-3 font-light tracking-wide;
+  }
+  
+  .zen-button-primary {
+    @apply bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 hover:border-primary/40 transition-all duration-300 ease-out rounded-xl px-8 py-3 font-light tracking-wide;
+  }
+  
+  .zen-divider {
+    @apply w-full h-px bg-gradient-to-r from-transparent via-border/30 to-transparent my-12;
+  }
+  
+  .zen-focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 focus:ring-offset-background;
+  }
+  
+  .zen-grid {
+    @apply grid gap-8 lg:gap-12;
+  }
+  
+  .zen-flex-center {
+    @apply flex items-center justify-center;
+  }
+  
+  .zen-shadow-soft {
+    @apply shadow-[0_8px_32px_rgba(0,0,0,0.04)] dark:shadow-[0_8px_32px_rgba(255,255,255,0.02)];
+  }
+  
+  .zen-shadow-medium {
+    @apply shadow-[0_16px_64px_rgba(0,0,0,0.06)] dark:shadow-[0_16px_64px_rgba(255,255,255,0.03)];
+  }
+  
+  .zen-animation-fade-in {
+    @apply animate-in fade-in duration-700 ease-out;
+  }
+  
+  .zen-animation-slide-up {
+    @apply animate-in slide-in-from-bottom-8 duration-700 ease-out;
+  }
+  
+  .zen-animation-scale-in {
+    @apply animate-in zoom-in-95 duration-500 ease-out;
   }
 }

@@ -4,7 +4,7 @@ import SchedulerSection from "./__scheduler/Scheduler";
 
 export default function Home() {
   return (
-    <div>
+    <div className="zen-spacing-xl">
       <HeroSection />
       <FeatureSection />
       <SchedulerSection />

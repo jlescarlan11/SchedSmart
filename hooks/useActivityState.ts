@@ -4,7 +4,7 @@ import { Course } from "../types/scheduler";
 /**
  * Manages the core course state (courses list, current course, editing state)
  */
-export const useCourseState = () => {
+export const useActivityState = () => {
   const [courses, setCourses] = useState<Course[]>([]);
   const [currentCourse, setCurrentCourse] = useState<Course>({
     courseCode: "",

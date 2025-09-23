@@ -9,7 +9,7 @@ export const Grid = ({ children }: PropsWithChildren) => {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.8 }}
-      className="grid grid-cols-1 lg:grid-cols-5 gap-20 items-center"
+      className="grid grid-cols-1 lg:grid-cols-5 gap-20"
     >
       {children}
     </motion.div>
