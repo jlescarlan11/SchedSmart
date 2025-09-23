@@ -12,10 +12,13 @@ export const useScheduleGeneration = (courses: Course[]) => {
 
     setIsGenerating(true);
     try {
-      // Add a small delay to show loading state for complex schedules
+      // Add a small delay to show loading state
       await new Promise((resolve) => setTimeout(resolve, 100));
       const result = generateSchedule(courses);
       setGeneratedSchedule(result);
+
+      // Note: Image auto-download is now handled in ScheduleDisplay component
+      // via useEffect when generatedSchedule changes
     } catch (error) {
       console.error("Error generating schedule:", error);
       // You might want to show an error toast here

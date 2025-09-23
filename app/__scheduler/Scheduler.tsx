@@ -19,6 +19,7 @@ const SchedulerSection: React.FC = () => {
     editingCourseIndex,
     selectedDays,
     generatedSchedule,
+    isGenerating,
 
     // Forms
     courseForm,
@@ -104,8 +105,11 @@ const SchedulerSection: React.FC = () => {
             canGenerateSchedule={canGenerateSchedule}
           />
 
-          {/* Generated Schedule Display */}
-          <ScheduleDisplay generatedSchedule={generatedSchedule} />
+          {/* Generated Schedule Display with Loading */}
+          <ScheduleDisplay
+            generatedSchedule={generatedSchedule}
+            isGenerating={isGenerating}
+          />
         </div>
       </div>
     </div>
