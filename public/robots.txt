@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://schedsmart.vercel.app/sitemap.xml

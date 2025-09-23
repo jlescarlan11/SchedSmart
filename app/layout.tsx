@@ -17,6 +17,35 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "SmartSched - Intelligent Activity Scheduling",
   description: "Effortless time management with intelligent activity scheduling. Designed for clarity and focus.",
+  keywords: ["scheduling", "time management", "productivity", "calendar", "smart scheduling"],
+  authors: [{ name: "John Lester Escarlan" }],
+  creator: "John Lester Escarlan",
+  metadataBase: new URL('https://schedsmart.vercel.app'), // Updated to match your actual domain
+  verification: {
+    google: "Z22mijyAZckzLjEbp3X1k45Jbxn5QcxI1omoPIyi7fA",
+  },
+  openGraph: {
+    title: "SmartSched - Intelligent Activity Scheduling",
+    description: "Effortless time management with intelligent activity scheduling. Designed for clarity and focus.",
+    type: "website",
+    locale: "en_US",
+    url: "https://schedsmart.vercel.app",
+  },
+  twitter: {
+    card: "summary",
+    title: "SmartSched - Intelligent Activity Scheduling",
+    description: "Effortless time management with intelligent activity scheduling. Designed for clarity and focus.",
+  },
+  icons: {
+    icon: [
+      { url: '/icon.png', sizes: '32x32', type: 'image/png' },
+      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/apple-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+  },
+  manifest: '/manifest.json',
 };
 
 export default function RootLayout({
