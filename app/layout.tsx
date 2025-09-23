@@ -36,15 +36,6 @@ export const metadata: Metadata = {
     title: "SmartSched - Intelligent Activity Scheduling",
     description: "Effortless time management with intelligent activity scheduling. Designed for clarity and focus.",
   },
-  icons: {
-    icon: [
-      { url: '/icon.png', sizes: '32x32', type: 'image/png' },
-      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
-    ],
-    apple: [
-      { url: '/apple-icon.png', sizes: '180x180', type: 'image/png' },
-    ],
-  },
   manifest: '/manifest.json',
 };
 
