@@ -52,29 +52,29 @@ export const DependencyForm: React.FC = () => {
     <Card>
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <CollapsibleTrigger asChild>
-          <CardHeader className="cursor-pointer hover:bg-accent/50 transition-colors">
+          <CardHeader className="cursor-pointer hover:bg-accent/50 transition-colors p-4 md:p-6">
             <CardTitle className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Link className="h-5 w-5" />
-                Dependencies
-                <Badge variant="secondary">{currentSlotDependencies.length}</Badge>
+              <div className="flex items-center gap-2 min-w-0">
+                <Link className="h-5 w-5 flex-shrink-0" />
+                <span className="truncate">Dependencies</span>
+                <Badge variant="secondary" className="flex-shrink-0">{currentSlotDependencies.length}</Badge>
               </div>
-              <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`h-4 w-4 transition-transform flex-shrink-0 ${isOpen ? 'rotate-180' : ''}`} />
             </CardTitle>
           </CardHeader>
         </CollapsibleTrigger>
         
         <CollapsibleContent>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 p-4 md:p-6">
             {/* Instructions */}
             {currentSlotIndex === null && (
-              <div className="text-sm text-muted-foreground text-center p-4 bg-accent/30 rounded">
+              <div className="text-sm text-muted-foreground text-center p-4 bg-accent/30 rounded-lg">
                 Click on a time slot above to select it for dependency management
               </div>
             )}
             
             {currentSlotIndex !== null && (
-              <div className="text-sm text-muted-foreground text-center p-2 bg-primary/10 rounded">
+              <div className="text-sm text-muted-foreground text-center p-3 bg-primary/10 rounded-lg">
                 Managing dependencies for Slot {currentSlotIndex + 1}
               </div>
             )}
@@ -83,20 +83,28 @@ export const DependencyForm: React.FC = () => {
             {currentSlotDependencies.length > 0 && (
               <div className="space-y-2">
                 <h4 className="text-sm font-medium">Current Dependencies:</h4>
-                {currentSlotDependencies.map((dep, index) => (
-                  <div key={index} className="flex items-center justify-between p-2 bg-accent/30 rounded">
-                    <span className="text-sm">
-                      {dep.dependentActivityCode} (Slot {dep.dependentSlotIndex + 1})
-                    </span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => activityHandlers.removeDependency(index)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
+                <div className="space-y-2">
+                  {currentSlotDependencies.map((dep, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 bg-accent/30 rounded-lg">
+                      <div className="flex-1 min-w-0">
+                        <span className="text-sm font-medium">
+                          {dep.dependentActivityCode}
+                        </span>
+                        <span className="text-xs text-muted-foreground block">
+                          Slot {dep.dependentSlotIndex + 1}
+                        </span>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => activityHandlers.removeDependency(index)}
+                        className="ml-2 flex-shrink-0"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
@@ -104,7 +112,7 @@ export const DependencyForm: React.FC = () => {
             {availableActivities.length > 0 && currentSlotIndex !== null && (
               <Form {...dependencyForm}>
                 <form onSubmit={dependencyForm.handleSubmit(activityHandlers.onDependencySubmit)} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={dependencyForm.control}
                       name="dependentActivityCode"
@@ -113,14 +121,26 @@ export const DependencyForm: React.FC = () => {
                           <FormLabel>Dependent Activity</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select activity" />
+                              <SelectTrigger className="w-full min-w-0">
+                                <SelectValue placeholder="Select activity" className="truncate text-left">
+                                  {field.value && (
+                                    <div className="flex flex-col text-left">
+                                      <span className="font-medium text-sm">{field.value}</span>
+                                    
+                                    </div>
+                                  )}
+                                </SelectValue>
                               </SelectTrigger>
                             </FormControl>
-                            <SelectContent>
+                            <SelectContent className="max-h-[200px] overflow-y-auto">
                               {availableActivities.map((activity) => (
-                                <SelectItem key={activity.activityCode} value={activity.activityCode}>
-                                  {activity.activityCode}
+                                <SelectItem key={activity.activityCode} value={activity.activityCode} className="whitespace-normal">
+                                  <div className="flex flex-col w-full">
+                                    <span className="font-medium break-words">{activity.activityCode}</span>
+                                    <span className="text-xs text-muted-foreground break-words">
+                                      {activity.availableSlots.length} slots available
+                                    </span>
+                                  </div>
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -140,20 +160,32 @@ export const DependencyForm: React.FC = () => {
                         
                         return (
                           <FormItem>
-                            <FormLabel>Slot</FormLabel>
+                            <FormLabel>Time Slot</FormLabel>
                             <Select 
                               onValueChange={(value) => field.onChange(parseInt(value))} 
                               value={field.value?.toString()}
                             >
                               <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select slot" />
+                                <SelectTrigger className="w-full min-w-0">
+                                  <SelectValue placeholder="Select time slot" className="truncate text-left">
+                                    {field.value !== undefined && selectedActivity && (
+                                      <div className="flex flex-col text-left">
+                                        <span className="font-medium text-sm">Slot {field.value + 1}</span>
+
+                                      </div>
+                                    )}
+                                  </SelectValue>
                                 </SelectTrigger>
                               </FormControl>
-                              <SelectContent>
+                              <SelectContent className="max-h-[200px] overflow-y-auto">
                                 {selectedActivity?.availableSlots.map((slot, index) => (
-                                  <SelectItem key={index} value={index.toString()}>
-                                    {formatSlot(slot)}
+                                  <SelectItem key={index} value={index.toString()} className="whitespace-normal">
+                                    <div className="flex flex-col w-full">
+                                      <span className="font-medium break-words">{formatSlot(slot)}</span>
+                                      <span className="text-xs text-muted-foreground break-words">
+                                        Slot {index + 1}
+                                      </span>
+                                    </div>
                                   </SelectItem>
                                 ))}
                               </SelectContent>
@@ -165,7 +197,7 @@ export const DependencyForm: React.FC = () => {
                     />
                   </div>
 
-                  <Button type="submit" size="sm">
+                  <Button type="submit" size="sm" className="w-full md:w-auto">
                     <Plus className="h-4 w-4 mr-2" />
                     Add Dependency
                   </Button>

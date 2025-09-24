@@ -40,6 +40,7 @@ interface ButtonProps {
   label: string;
   isSelected: boolean;
   onClick: () => void;
+  className?: string;
 }
 
 const TimeSelectField: React.FC<TimeSelectFieldProps> = ({
@@ -79,12 +80,14 @@ const SelectableButton: React.FC<ButtonProps> = ({
   label,
   isSelected,
   onClick,
+  className,
 }) => (
   <Button
     type="button"
     variant={isSelected ? "default" : "outline"}
     size="sm"
     onClick={onClick}
+    className={className}
   >
     {label}
   </Button>
@@ -118,6 +121,7 @@ export const TimeSlotSelector: React.FC<TimeSlotSelectorProps> = ({
                         label={preset.label}
                         isSelected={isPresetSelected(preset.days)}
                         onClick={() => handlePresetSelect(preset.days)}
+                        className="flex-1 min-w-0"
                       />
                     ))}
                   </div>
@@ -134,6 +138,7 @@ export const TimeSlotSelector: React.FC<TimeSlotSelectorProps> = ({
                         label={getDayAbbreviation(day)}
                         isSelected={selectedDays.includes(day)}
                         onClick={() => handleDayToggle(day)}
+                        className="flex-1 min-w-0"
                       />
                     ))}
                   </div>
@@ -145,19 +150,23 @@ export const TimeSlotSelector: React.FC<TimeSlotSelectorProps> = ({
         )}
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <TimeSelectField
-          control={form.control}
-          name="startTime"
-          label="Start Time"
-          placeholder="Select start time"
-        />
-        <TimeSelectField
-          control={form.control}
-          name="endTime"
-          label="End Time"
-          placeholder="Select end time"
-        />
+      <div className="flex flex-col md:flex-row gap-4">
+        <div className="flex-1">
+          <TimeSelectField
+            control={form.control}
+            name="startTime"
+            label="Start Time"
+            placeholder="Select start time"
+          />
+        </div>
+        <div className="flex-1">
+          <TimeSelectField
+            control={form.control}
+            name="endTime"
+            label="End Time"
+            placeholder="Select end time"
+          />
+        </div>
       </div>
     </div>
   );

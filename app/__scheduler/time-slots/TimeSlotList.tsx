@@ -44,24 +44,24 @@ export const TimeSlotList: React.FC<TimeSlotListProps> = ({
               key={index}
               {...ANIMATION_CONFIG.slideInLeft}
               transition={{ delay: index * 0.1 }}
-              className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ${
+              className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 rounded-lg border cursor-pointer transition-colors ${
                 selectedSlotIndex === index 
                   ? "bg-primary/10 border-primary" 
                   : "bg-accent border-transparent hover:bg-accent/80"
               }`}
               onClick={() => onSelectSlot?.(index)}
             >
-              <div className="flex flex-wrap gap-1">
+              <div className="flex flex-wrap gap-1 items-center">
                 {slot.days.map((day) => (
                   <Badge key={day} variant="secondary" className="text-xs">
                     {getDayAbbreviation(day)}
                   </Badge>
                 ))}
-                <span className="text-sm font-medium ml-2">
+                <span className="text-sm font-medium">
                   {slot.startTime} - {slot.endTime}
                 </span>
                 {selectedSlotIndex === index && (
-                  <Badge variant="default" className="text-xs ml-2">
+                  <Badge variant="default" className="text-xs">
                     Selected for Dependencies
                   </Badge>
                 )}
@@ -75,7 +75,7 @@ export const TimeSlotList: React.FC<TimeSlotListProps> = ({
                     e.stopPropagation();
                     onRemoveSlot(index);
                   }}
-                  className="text-destructive hover:text-destructive"
+                  className="text-destructive hover:text-destructive self-end sm:self-auto"
                 >
                   <X className="h-4 w-4" />
                 </Button>
