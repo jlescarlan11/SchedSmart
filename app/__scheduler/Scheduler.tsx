@@ -26,7 +26,10 @@ const SchedulerSection: React.FC = () => {
     // Handlers
     dayHandlers,
     courseHandlers,
-    scheduleHandlers: { handleGenerateSchedule, resetScheduler },
+    scheduleHandlers: { handleGenerateSchedule, resetScheduler, clearSavedData },
+
+    // Local storage utilities
+    localStorageUtils: { hasSavedData },
 
     // Computed values
     canAddCourse,
@@ -77,6 +80,8 @@ const SchedulerSection: React.FC = () => {
             onAddCourse={courseHandlers.addCourse}
             onCancelEdit={courseHandlers.cancelEdit}
             onReset={resetScheduler}
+            onClearSavedData={clearSavedData}
+            hasSavedData={hasSavedData()}
             dayHandlers={dayHandlers}
             courseHandlers={{
               selectSlotForDependencies:

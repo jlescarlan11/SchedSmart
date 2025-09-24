@@ -20,6 +20,18 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Features
+
+### Local Storage Persistence
+The scheduler now automatically saves your data to browser local storage:
+
+- **Automatic Saving**: All courses and generated schedules are automatically saved as you work
+- **Persistent Data**: Your schedules will be restored when you return to the application
+- **Clear Saved Data**: Use the "Clear Saved" button to remove all saved data from local storage
+- **Reset All**: Use the "Reset All" button to clear current session without affecting saved data
+
+Your data is stored locally in your browser and never sent to any external servers.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

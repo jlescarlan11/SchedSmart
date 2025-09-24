@@ -119,12 +119,24 @@ export const generateScheduleBacktracking = (
 
     const course = courses[courseIndex];
 
+    // Check if this course has any slots already scheduled as dependencies
+    const alreadyScheduledSlots = new Set(
+      currentSchedule
+        .filter(slot => slot.courseCode === course.courseCode)
+        .map(slot => slot.slotIndex)
+    );
+
     // Try each available slot for this course
     for (
       let slotIndex = 0;
       slotIndex < course.availableSlots.length;
       slotIndex++
     ) {
+      // Skip if this slot is already scheduled as a dependency
+      if (alreadyScheduledSlots.has(slotIndex)) {
+        continue;
+      }
+
       const slot = course.availableSlots[slotIndex];
       const potentialSlot: ScheduleSlot = {
         courseCode: course.courseCode,

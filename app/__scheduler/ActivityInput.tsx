@@ -1,11 +1,22 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { BookOpen, Clock, Plus, Save, RefreshCw, X, Link, Trash2 } from "lucide-react";
+import {
+  BookOpen,
+  Clock,
+  Plus,
+  Save,
+  RefreshCw,
+  X,
+  Link,
+  Trash2,
+  Database,
+} from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ClientOnly } from "@/components/ui/client-only";
 import {
   Form,
   FormControl,
@@ -51,7 +62,7 @@ interface ActivityInputProps {
   courseForm: UseFormReturn<CourseFormData>;
   timeSlotForm: UseFormReturn<TimeSlotFormData>;
   dependencyForm: UseFormReturn<DependencyFormData>;
-  
+
   // State
   selectedDays: string[];
   timeSlots: TimeSlot[];
@@ -61,7 +72,7 @@ interface ActivityInputProps {
   currentSlotIndex: number | null;
   canAddCourse: boolean;
   hasData: boolean;
-  
+
   // Handlers
   onCourseSubmit: (data: CourseFormData) => void;
   onTimeSlotSubmit: (data: TimeSlotFormData) => void;
@@ -72,6 +83,8 @@ interface ActivityInputProps {
   onAddCourse: () => void;
   onCancelEdit?: () => void;
   onReset: () => void;
+  onClearSavedData?: () => void;
+  hasSavedData?: boolean;
   dayHandlers: DayHandlers;
   courseHandlers: CourseHandlers;
 }
@@ -97,6 +110,8 @@ export const ActivityInput: React.FC<ActivityInputProps> = ({
   onAddCourse,
   onCancelEdit,
   onReset,
+  onClearSavedData,
+  hasSavedData,
   dayHandlers,
   courseHandlers,
 }) => {
@@ -125,7 +140,7 @@ export const ActivityInput: React.FC<ActivityInputProps> = ({
         currentSlotDependencies: dependencies,
         selectedCourse: selected,
       };
-    }, [courses, currentCourse, currentSlotIndex, dependencyForm]);
+    }, [courses, currentCourse, currentSlotIndex, dependencyForm.watch]);
 
   const handleCourseChange = (courseCode: string) => {
     dependencyForm.setValue("dependentCourseCode", courseCode);
@@ -144,22 +159,35 @@ export const ActivityInput: React.FC<ActivityInputProps> = ({
       {/* Combined Course Input Card */}
       <Card className="border-border/20 bg-card/50 backdrop-blur-sm">
         <CardHeader className="pb-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap">
             <CardTitle className="flex items-center gap-3 text-lg font-medium">
               <BookOpen className="h-5 w-5 text-muted-foreground" />
               Activity Information
             </CardTitle>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap justify-end w-full sm:w-auto">
               {hasData && !isEditing && (
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={onReset}
-                  className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
-                  title="Reset all courses and start over"
+                  onClick={hasSavedData && onClearSavedData ? onClearSavedData : onReset}
+                  className="flex items-center gap-2 text-muted-foreground hover:text-destructive"
+                  title={
+                    hasSavedData 
+                      ? "Clear all saved data and reset everything" 
+                      : "Reset all courses and start over"
+                  }
                 >
-                  <RefreshCw className="h-4 w-4" />
-                  Reset All
+                  {hasSavedData ? (
+                    <>
+                      <Database className="h-4 w-4" />
+                      Clear & Reset
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="h-4 w-4" />
+                      Reset All
+                    </>
+                  )}
                 </Button>
               )}
               {isEditing && (
@@ -178,7 +206,10 @@ export const ActivityInput: React.FC<ActivityInputProps> = ({
         <CardContent className="space-y-8 pt-0">
           {/* Course Code Section */}
           <Form {...courseForm}>
-            <form onSubmit={courseForm.handleSubmit(onCourseSubmit)} className="space-y-4">
+            <form
+              onSubmit={courseForm.handleSubmit(onCourseSubmit)}
+              className="space-y-4"
+            >
               <FormField
                 control={courseForm.control}
                 name="courseCode"
@@ -214,7 +245,10 @@ export const ActivityInput: React.FC<ActivityInputProps> = ({
 
             {/* Time Slot Section */}
             <Form {...timeSlotForm}>
-              <form onSubmit={timeSlotForm.handleSubmit(onTimeSlotSubmit)} className="space-y-4">
+              <form
+                onSubmit={timeSlotForm.handleSubmit(onTimeSlotSubmit)}
+                className="space-y-4"
+              >
                 <TimeSlotSelector
                   form={timeSlotForm}
                   selectedDays={selectedDays}
@@ -258,21 +292,34 @@ export const ActivityInput: React.FC<ActivityInputProps> = ({
               <div className="space-y-6">
                 <div className="text-sm text-muted-foreground">
                   Configure which activities must be scheduled together with{" "}
-                  <Badge variant="outline">{currentCourse.courseCode}</Badge> slot{" "}
-                  {currentSlotIndex + 1}:
+                  <Badge variant="outline">{currentCourse.courseCode}</Badge>{" "}
+                  slot {currentSlotIndex + 1}:
                   <br />
                   <span className="text-xs">
-                    {currentCourse.availableSlots[currentSlotIndex] ? 
-                      formatSlot(currentCourse.availableSlots[currentSlotIndex]) : 
-                      "Invalid slot"
-                    }
+                    {currentCourse.availableSlots[currentSlotIndex]
+                      ? formatSlot(
+                          currentCourse.availableSlots[currentSlotIndex]
+                        )
+                      : "Invalid slot - please refresh and try again"}
                   </span>
                 </div>
+
+                {/* Debug info for development */}
+                {process.env.NODE_ENV === 'development' && (
+                  <div className="text-xs text-muted-foreground p-2 bg-muted/30 rounded border">
+                    <strong>Debug:</strong> Current slot: {currentSlotIndex}, 
+                    Available courses: {availableCourses.length}, 
+                    Selected course: {selectedCourse?.courseCode || 'None'}
+                  </div>
+                )}
 
                 {/* Add Dependency Form */}
                 {availableCourses.length > 0 ? (
                   <Form {...dependencyForm}>
-                    <form onSubmit={dependencyForm.handleSubmit(onDependencySubmit)} className="space-y-4">
+                    <form
+                      onSubmit={dependencyForm.handleSubmit(onDependencySubmit)}
+                      className="space-y-4"
+                    >
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <FormField
                           control={dependencyForm.control}
@@ -322,11 +369,16 @@ export const ActivityInput: React.FC<ActivityInputProps> = ({
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                  {selectedCourse?.availableSlots.map((slot, index) => (
-                                    <SelectItem key={index} value={index.toString()}>
-                                      Slot {index + 1}: {formatSlot(slot)}
-                                    </SelectItem>
-                                  ))}
+                                  {selectedCourse?.availableSlots.map(
+                                    (slot, index) => (
+                                      <SelectItem
+                                        key={index}
+                                        value={index.toString()}
+                                      >
+                                        Slot {index + 1}: {formatSlot(slot)}
+                                      </SelectItem>
+                                    )
+                                  )}
                                 </SelectContent>
                               </Select>
                               <FormMessage />
@@ -339,7 +391,18 @@ export const ActivityInput: React.FC<ActivityInputProps> = ({
                         type="submit"
                         className="w-full"
                         size="sm"
-                        disabled={!selectedCourse || dependencyForm.watch("dependentSlotIndex") === undefined}
+                        disabled={
+                          !selectedCourse ||
+                          dependencyForm.watch("dependentSlotIndex") ===
+                            undefined
+                        }
+                        title={
+                          !selectedCourse
+                            ? "Please select a dependent activity first"
+                            : dependencyForm.watch("dependentSlotIndex") === undefined
+                            ? "Please select a time slot for the dependent activity"
+                            : "Add this dependency"
+                        }
                       >
                         <Plus className="h-4 w-4 mr-2" />
                         Add Dependency
@@ -348,7 +411,8 @@ export const ActivityInput: React.FC<ActivityInputProps> = ({
                   </Form>
                 ) : (
                   <div className="text-sm text-muted-foreground p-4 bg-muted/50 rounded-lg">
-                    No other activities available. Add more activities to create dependencies.
+                    No other activities available. Add more activities to create
+                    dependencies.
                   </div>
                 )}
 
@@ -410,7 +474,7 @@ export const ActivityInput: React.FC<ActivityInputProps> = ({
           {/* Divider for Add Course Section */}
           <Separator className="my-6" />
           <div className="pt-0">
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               <Button
                 onClick={onAddCourse}
                 disabled={!canAddCourse}
@@ -430,7 +494,12 @@ export const ActivityInput: React.FC<ActivityInputProps> = ({
                 )}
               </Button>
               {isEditing && onCancelEdit && (
-                <Button onClick={onCancelEdit} variant="outline" size="lg">
+                <Button
+                  onClick={onCancelEdit}
+                  variant="outline"
+                  size="lg"
+                  className="flex-1"
+                >
                   Cancel
                 </Button>
               )}

@@ -3,9 +3,13 @@ import { useActivityForm } from "./useActivityForm";
 import { useDaySelection } from "./useDaySelection";
 import { useActivityManagement } from "./useActivityManagement";
 import { useScheduleGeneration } from "./useScheduleGeneration";
+import { useLocalStorage } from "./useLocalStorage";
 import type { DependencyFormData } from "../types/scheduler";
 
 export const useScheduler = () => {
+  // Local storage
+  const { clearAllData, hasSavedData } = useLocalStorage();
+  
   // Forms
   const { courseForm, timeSlotForm } = useActivityForm();
   const dependencyForm = useForm<DependencyFormData>({
@@ -33,6 +37,12 @@ export const useScheduler = () => {
     courseForm.reset();
     timeSlotForm.reset();
     dependencyForm.reset();
+  };
+
+  // Clear all saved data function
+  const clearSavedData = () => {
+    clearAllData();
+    resetScheduler();
   };
 
   // Computed values
@@ -81,6 +91,12 @@ export const useScheduler = () => {
     scheduleHandlers: {
       handleGenerateSchedule: scheduleHandlers.handleGenerateSchedule,
       resetScheduler,
+      clearSavedData,
+    },
+
+    // Local storage utilities
+    localStorageUtils: {
+      hasSavedData,
     },
 
     // Computed values

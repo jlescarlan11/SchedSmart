@@ -32,18 +32,13 @@ const CourseItem: React.FC<{
   // Count dependencies for this activity
   const dependencyCount = course.dependencies?.length || 0;
 
-  // Get unique dependent activities
-  const dependentCourses = new Set(
-    course.dependencies?.map((dep) => dep.dependentCourseCode) || []
-  );
-
   return (
     <motion.div
       {...ANIMATION_CONFIG.slideInRight}
       transition={{ delay: index * 0.1 }}
       className="p-6 border border-border/30 rounded-lg bg-card/30 hover:bg-accent/30 transition-all duration-300 hover:shadow-sm"
     >
-      <div className="flex items-start justify-between mb-3">
+      <div className="flex items-start justify-between mb-3 flex-wrap">
         <div className="flex items-center gap-2">
           <h4 className="font-semibold text-lg">{course.courseCode}</h4>
           {dependencyCount > 0 && (
@@ -56,7 +51,7 @@ const CourseItem: React.FC<{
             </Badge>
           )}
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 justify-end w-full sm:w-auto">
           <Button
             variant="ghost"
             size="sm"
@@ -82,53 +77,63 @@ const CourseItem: React.FC<{
           <span>{course.availableSlots.length} time slot(s)</span>
         </div>
 
-        {/* Show time slots */}
-        <div className="space-y-1">
-          {course.availableSlots.map((slot, slotIndex) => (
-            <div key={slotIndex} className="flex items-center gap-2 text-xs">
-              <span className="text-muted-foreground">
-                Slot {slotIndex + 1}:
-              </span>
-              <div className="flex gap-1">
-                {slot.days.map((day) => (
-                  <Badge
-                    key={day}
-                    variant="outline"
-                    className="text-xs px-1 py-0"
-                  >
-                    {getDayAbbreviation(day)}
-                  </Badge>
-                ))}
-              </div>
-              <span className="text-muted-foreground">
-                {slot.startTime} - {slot.endTime}
-              </span>
-            </div>
-          ))}
-        </div>
+        {/* Show time slots with integrated dependencies */}
+        <div className="space-y-2">
+          {course.availableSlots.map((slot, slotIndex) => {
+            // Find dependencies for this specific slot
+            const slotDependencies = course.dependencies?.filter(
+              dep => dep.slotIndex === slotIndex
+            ) || [];
 
-        {/* Show dependencies if any */}
-        {dependentCourses.size > 0 && (
-          <div className="mt-2 pt-2">
-            <Separator className="mb-2" />
-            <div className="text-xs text-muted-foreground mb-1">
-              Dependencies:
-            </div>
-            <div className="flex flex-wrap gap-1">
-              {Array.from(dependentCourses).map((activityCode) => (
-                <Badge key={activityCode} variant="secondary" className="text-xs">
-                  {activityCode}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        )}
+            return (
+              <div key={slotIndex} className="text-xs">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-muted-foreground">
+                    Slot {slotIndex + 1}:
+                  </span>
+                  <div className="flex gap-1">
+                    {slot.days.map((day) => (
+                      <Badge
+                        key={day}
+                        variant="outline"
+                        className="text-xs px-1 py-0"
+                      >
+                        {getDayAbbreviation(day)}
+                      </Badge>
+                    ))}
+                  </div>
+                  <span className="text-muted-foreground">
+                    {slot.startTime} - {slot.endTime}
+                  </span>
+                </div>
+                
+                {/* Show dependencies for this slot if any */}
+                {slotDependencies.length > 0 && (
+                  <div className="flex items-center gap-1 mt-1 ml-4 flex-wrap">
+                    <span className="text-muted-foreground">depends on:</span>
+                    {slotDependencies.map((dep, depIndex) => (
+                      <Badge
+                        key={depIndex}
+                        variant="secondary"
+                        className="text-xs"
+                      >
+                        {dep.dependentCourseCode}: Slot {dep.dependentSlotIndex + 1}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
     </motion.div>
   );
 };
 
-const ScheduleResults: React.FC<{ generatedSchedule: GeneratedSchedule | null }> = ({ generatedSchedule }) => {
+const ScheduleResults: React.FC<{
+  generatedSchedule: GeneratedSchedule | null;
+}> = ({ generatedSchedule }) => {
   // Auto-download when schedule is generated
   React.useEffect(() => {
     if (generatedSchedule?.schedule && generatedSchedule.schedule.length > 0) {
@@ -146,7 +151,8 @@ const ScheduleResults: React.FC<{ generatedSchedule: GeneratedSchedule | null }>
   }
 
   const hasConflicts = generatedSchedule.conflicts.length > 0;
-  const hasDependencyViolations = (generatedSchedule.dependencyViolations?.length ?? 0) > 0;
+  const hasDependencyViolations =
+    (generatedSchedule.dependencyViolations?.length ?? 0) > 0;
 
   if (!hasConflicts && !hasDependencyViolations) {
     return null;
@@ -222,8 +228,10 @@ export const ActivityList: React.FC<ActivityListProps> = ({
     <div className="space-y-6">
       <Card className="border-border/20 bg-card/50 backdrop-blur-sm">
         <CardHeader className="pb-4">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg font-medium">Added Activities ({courses.length})</CardTitle>
+          <div className="flex items-center justify-center sm:justify-between gap-2 flex-wrap">
+            <CardTitle className="text-lg font-medium">
+              Added Activities ({courses.length})
+            </CardTitle>
             <Button
               onClick={onGenerateSchedule}
               disabled={!canGenerateSchedule}

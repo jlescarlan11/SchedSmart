@@ -33,7 +33,7 @@ export const TimeSlotList: React.FC<TimeSlotListProps> = ({
     <AnimatePresence>
       <motion.div {...ANIMATION_CONFIG.expandHeight}>
         {isInteractive && (
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between mb-3 flex-wrap">
             <h4 className="font-medium">Time Slot Options:</h4>
             {onSelectSlot && (
               <span className="text-xs text-muted-foreground">
@@ -53,13 +53,14 @@ export const TimeSlotList: React.FC<TimeSlotListProps> = ({
                 transition={{ delay: index * 0.1 }}
                 className={`flex items-center justify-between p-3 rounded-lg border-2 transition-colors ${
                   isInteractive
-                    ? "cursor-pointer " + (isSelected
+                    ? "cursor-pointer " +
+                      (isSelected
                         ? "bg-primary/10 border-primary"
                         : "bg-accent border-transparent hover:border-primary/30")
                     : "bg-accent border-transparent"
                 }`}
                 onClick={() => onSelectSlot?.(index)}
-             >
+              >
                 <div className="flex flex-wrap gap-1">
                   {slot.days.map((day) => (
                     <Badge key={day} variant="secondary" className="text-xs">
@@ -99,5 +100,3 @@ export const TimeSlotList: React.FC<TimeSlotListProps> = ({
 };
 
 export default TimeSlotList;
-
-
