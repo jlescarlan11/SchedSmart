@@ -53,11 +53,11 @@ const TimeSelectField: React.FC<TimeSelectFieldProps> = ({
     control={control}
     name={name}
     render={({ field }) => (
-      <FormItem>
+      <FormItem className="w-full">
         <FormLabel>{label}</FormLabel>
         <Select onValueChange={field.onChange} value={field.value as string}>
           <FormControl>
-            <SelectTrigger>
+            <SelectTrigger className="w-full">
               <SelectValue placeholder={placeholder} />
             </SelectTrigger>
           </FormControl>

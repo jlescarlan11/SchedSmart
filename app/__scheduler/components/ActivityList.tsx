@@ -174,7 +174,7 @@ const ActivityItem: React.FC<{
     <motion.div
       {...ANIMATION_CONFIG.slideInRight}
       transition={{ delay: index * 0.1 }}
-      className="border border-border/30 rounded-lg bg-card/30 hover:bg-accent/30 transition-all duration-300 hover:shadow-sm"
+      className="p-2 border border-border/30 rounded-lg bg-card/30 hover:bg-accent/30 transition-all duration-300 hover:shadow-sm"
     >
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-2 flex-wrap">
@@ -307,9 +307,9 @@ const ScheduleDisplay: React.FC<{
       {/* Schedule Items */}
       <div className="space-y-2">
         {schedule.schedule.map((item: import("@/types/scheduler").ScheduleSlot, index: number) => (
-          <div key={index} className="flex items-center justify-between p-2 bg-accent/30 rounded flex-wrap ">
-            <span className="font-medium">{item.activityCode}</span>
-            <span className="text-sm text-muted-foreground">
+          <div key={index} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-2 bg-accent/30 rounded gap-2">
+            <span className="font-medium flex-shrink-0">{item.activityCode}</span>
+            <span className="text-sm text-muted-foreground sm:text-right whitespace-nowrap">
               {item.days.map(getDayAbbreviation).join(", ")} • {item.startTime} - {item.endTime}
             </span>
           </div>
