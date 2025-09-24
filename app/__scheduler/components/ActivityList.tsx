@@ -131,13 +131,13 @@ export const ActivityList: React.FC = () => {
           <CardHeader>
             <CardTitle className="flex items-center justify-between flex-wrap gap-4">
               <span>Generated Schedule</span>
-              <div className="flex gap-2 w-full">
+              <div className="flex gap-2 w-full sm:w-auto">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={handleDownloadSchedule}
                   disabled={isLoading}
-                  className="flex-1"
+                  className="flex-1 sm:flex-none"
                 >
                   <Eye className="h-4 w-4 mr-2" />
                   {isLoading ? "Downloading..." : "Download"}
@@ -145,7 +145,7 @@ export const ActivityList: React.FC = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="flex-1"
+                  className="flex-1 sm:flex-none"
                   onClick={scheduleHandlers.resetScheduler}
                 >
                   Reset
