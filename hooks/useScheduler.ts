@@ -1,40 +1,92 @@
-import { useForm } from "react-hook-form";
-import { useActivityForm } from "./useActivityForm";
-import { useDaySelection } from "./useDaySelection";
-import { useActivityManagement } from "./useActivityManagement";
-import { useScheduleGeneration } from "./useScheduleGeneration";
-import { useLocalStorage } from "./useLocalStorage";
-import type { DependencyFormData } from "../types/scheduler";
+import { useSchedulerState } from "./useSchedulerState";
+import { useSchedulerActions } from "./useSchedulerActions";
+import { useSchedulerForms } from "./useSchedulerForms";
+import { useStepFlow } from "./useStepFlow";
 
+/**
+ * Consolidated scheduler hook
+ * Replaces: useActivityForm, useDaySelection, useActivityManagement, 
+ * useScheduleGeneration, useLocalStorage, useStepFlow
+ */
 export const useScheduler = () => {
-  // Local storage
-  const { clearAllData, hasSavedData } = useLocalStorage();
+  // Step flow management
+  const stepFlow = useStepFlow();
   
   // Forms
-  const { courseForm, timeSlotForm } = useActivityForm();
-  const dependencyForm = useForm<DependencyFormData>({
-    defaultValues: {
-      dependentCourseCode: "",
-      dependentSlotIndex: undefined,
-    },
-  });
+  const { activityForm, timeSlotForm, dependencyForm } = useSchedulerForms();
 
-  // Sub-hooks
-  const dayHandlers = useDaySelection(timeSlotForm);
-  const courseHandlers = useActivityManagement(
-    courseForm,
+  // State management
+  const {
+    activities,
+    currentActivity,
+    currentSlotIndex,
+    editingActivityIndex,
+    selectedDays,
+    generatedSchedule,
+    isNewlyGenerated,
+    hasData,
+    canAddActivity,
+    canGenerateSchedule,
+    setActivities,
+    setCurrentActivity,
+    setCurrentSlotIndex,
+    setEditingActivityIndex,
+    setSelectedDays,
+    setGeneratedSchedule,
+    setIsNewlyGenerated,
+    resetCurrentActivity,
+    resetAllActivities,
+    resetSchedule,
+    clearAllData,
+    hasSavedData,
+  } = useSchedulerState();
+
+  // Actions
+  const {
+    addActivity,
+    removeActivity,
+    editActivity,
+    cancelEdit,
+    addTimeSlot,
+    removeTimeSlot,
+    selectSlotForDependencies,
+    handleDayToggle,
+    handlePresetSelect,
+    isPresetSelected,
+    resetDays,
+    addDependency,
+    removeDependency,
+    handleGenerateSchedule,
+    onActivitySubmit,
+    onTimeSlotSubmit,
+    onDependencySubmit,
+    updateCurrentActivityCode,
+  } = useSchedulerActions(
+    activities,
+    currentActivity,
+    currentSlotIndex,
+    editingActivityIndex,
+    selectedDays,
+    setActivities,
+    setCurrentActivity,
+    setCurrentSlotIndex,
+    setEditingActivityIndex,
+    setSelectedDays,
+    setGeneratedSchedule,
+    setIsNewlyGenerated,
+    resetCurrentActivity,
+    activityForm,
     timeSlotForm,
-    dependencyForm,
-    dayHandlers.resetDays
+    dependencyForm
   );
-  const scheduleHandlers = useScheduleGeneration(courseHandlers.courses);
 
   // Global reset function
   const resetScheduler = () => {
-    courseHandlers.resetCourses();
-    dayHandlers.resetDays();
-    scheduleHandlers.resetSchedule();
-    courseForm.reset();
+    resetAllActivities();
+    resetDays();
+    resetSchedule();
+    stepFlow.resetSteps();
+    activityForm.reset();
     timeSlotForm.reset();
     dependencyForm.reset();
   };
@@ -45,51 +97,54 @@ export const useScheduler = () => {
     resetScheduler();
   };
 
-  // Computed values
-  const canAddCourse = Boolean(
-    courseHandlers.currentCourse.courseCode.trim() &&
-      courseHandlers.currentCourse.availableSlots.length > 0
-  );
-  const canGenerateSchedule = courseHandlers.courses.length > 0;
-  const hasData =
-    courseHandlers.courses.length > 0 ||
-    Boolean(scheduleHandlers.generatedSchedule);
-
   return {
     // State
-    courses: courseHandlers.courses,
-    currentCourse: courseHandlers.currentCourse,
-    currentSlotIndex: courseHandlers.currentSlotIndex,
-    editingCourseIndex: courseHandlers.editingCourseIndex,
-    selectedDays: dayHandlers.selectedDays,
-    generatedSchedule: scheduleHandlers.generatedSchedule,
+    activities,
+    currentActivity,
+    currentSlotIndex,
+    editingActivityIndex,
+    selectedDays,
+    generatedSchedule,
+    isNewlyGenerated,
+    hasData,
+    canAddActivity,
+    canGenerateSchedule,
 
     // Forms
-    courseForm,
+    activityForm,
     timeSlotForm,
     dependencyForm,
 
-    // Handlers (grouped by concern)
+    // Step flow
+    stepFlow,
+
+    // Day handlers
     dayHandlers: {
-      handleDayToggle: dayHandlers.handleDayToggle,
-      handlePresetSelect: dayHandlers.handlePresetSelect,
-      isPresetSelected: dayHandlers.isPresetSelected,
+      handleDayToggle,
+      handlePresetSelect,
+      isPresetSelected,
+      resetDays,
     },
-    courseHandlers: {
-      onCourseSubmit: courseHandlers.onCourseSubmit,
-      onTimeSlotSubmit: courseHandlers.onTimeSlotSubmit,
-      onDependencySubmit: courseHandlers.onDependencySubmit,
-      addCourse: courseHandlers.addCourse,
-      removeCourse: courseHandlers.removeCourse,
-      editCourse: courseHandlers.editCourse,
-      cancelEdit: courseHandlers.cancelEdit,
-      removeTimeSlot: courseHandlers.removeTimeSlot,
-      removeDependency: courseHandlers.removeDependency,
-      selectSlotForDependencies: courseHandlers.selectSlotForDependencies,
-      updateCurrentCourseCode: courseHandlers.updateCurrentCourseCode,
+
+    // Activity handlers
+    activityHandlers: {
+      onActivitySubmit,
+      onTimeSlotSubmit,
+      onDependencySubmit,
+      updateCurrentActivityCode,
+      addActivity,
+      removeActivity,
+      editActivity,
+      cancelEdit,
+      removeTimeSlot,
+      selectSlotForDependencies,
+      removeDependency,
+      resetActivities: resetAllActivities,
     },
+
+    // Schedule handlers
     scheduleHandlers: {
-      handleGenerateSchedule: scheduleHandlers.handleGenerateSchedule,
+      handleGenerateSchedule,
       resetScheduler,
       clearSavedData,
     },
@@ -98,10 +153,5 @@ export const useScheduler = () => {
     localStorageUtils: {
       hasSavedData,
     },
-
-    // Computed values
-    canAddCourse,
-    canGenerateSchedule,
-    hasData,
   };
 };

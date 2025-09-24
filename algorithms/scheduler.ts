@@ -1,5 +1,5 @@
 import {
-  Course,
+  Activity,
   GeneratedSchedule,
   ScheduleSlot,
 } from "../types/scheduler";
@@ -9,29 +9,29 @@ import { checkTimeConflict } from "../utils";
  * Gets all slots that must be scheduled together with the given slot
  */
 const getMandatoryDependentSlots = (
-  course: Course,
+  activity: Activity,
   slotIndex: number,
-  allCourses: Course[]
+  allActivities: Activity[]
 ): ScheduleSlot[] => {
-  if (!course.dependencies) return [];
+  if (!activity.dependencies) return [];
 
   const dependentSlots: ScheduleSlot[] = [];
 
   // Get dependencies for this specific slot
-  const slotDependencies = course.dependencies.filter(
-    (dep) => dep.courseCode === course.courseCode && dep.slotIndex === slotIndex
+  const slotDependencies = activity.dependencies.filter(
+    (dep) => dep.activityCode === activity.activityCode && dep.slotIndex === slotIndex
   );
 
   for (const dependency of slotDependencies) {
-    const dependentCourse = allCourses.find(
-      (c) => c.courseCode === dependency.dependentCourseCode
+    const dependentActivity = allActivities.find(
+      (a) => a.activityCode === dependency.dependentActivityCode
     );
 
-    if (dependentCourse?.availableSlots[dependency.dependentSlotIndex]) {
+    if (dependentActivity?.availableSlots[dependency.dependentSlotIndex]) {
       const dependentSlot =
-        dependentCourse.availableSlots[dependency.dependentSlotIndex];
+        dependentActivity.availableSlots[dependency.dependentSlotIndex];
       dependentSlots.push({
-        courseCode: dependency.dependentCourseCode,
+        activityCode: dependency.dependentActivityCode,
         days: dependentSlot.days,
         startTime: dependentSlot.startTime,
         endTime: dependentSlot.endTime,
@@ -78,18 +78,18 @@ const wouldCreateConflicts = (
 };
 
 /**
- * Checks if we're trying to schedule the same course-slot combination twice
+ * Checks if we're trying to schedule the same activity-slot combination twice
  */
 const hasDoubleScheduling = (
   newSlots: ScheduleSlot[],
   currentSchedule: ScheduleSlot[]
 ): boolean => {
   const existingSlotIds = new Set(
-    currentSchedule.map((slot) => `${slot.courseCode}-${slot.slotIndex}`)
+    currentSchedule.map((slot) => `${slot.activityCode}-${slot.slotIndex}`)
   );
 
   const newSlotIds = newSlots.map(
-    (slot) => `${slot.courseCode}-${slot.slotIndex}`
+    (slot) => `${slot.activityCode}-${slot.slotIndex}`
   );
 
   return newSlotIds.some((id) => existingSlotIds.has(id));
@@ -99,17 +99,17 @@ const hasDoubleScheduling = (
  * Generates schedule using backtracking algorithm with dependency support
  */
 export const generateScheduleBacktracking = (
-  courses: Course[]
+  activities: Activity[]
 ): GeneratedSchedule => {
   let bestSchedule: ScheduleSlot[] = [];
   let bestCount = 0;
 
   const backtrack = (
-    courseIndex: number,
+    activityIndex: number,
     currentSchedule: ScheduleSlot[]
   ): void => {
-    // Base case: processed all courses
-    if (courseIndex === courses.length) {
+    // Base case: processed all activities
+    if (activityIndex === activities.length) {
       if (currentSchedule.length > bestCount) {
         bestCount = currentSchedule.length;
         bestSchedule = [...currentSchedule];
@@ -117,19 +117,19 @@ export const generateScheduleBacktracking = (
       return;
     }
 
-    const course = courses[courseIndex];
+    const activity = activities[activityIndex];
 
-    // Check if this course has any slots already scheduled as dependencies
+    // Check if this activity has any slots already scheduled as dependencies
     const alreadyScheduledSlots = new Set(
       currentSchedule
-        .filter(slot => slot.courseCode === course.courseCode)
+        .filter(slot => slot.activityCode === activity.activityCode)
         .map(slot => slot.slotIndex)
     );
 
-    // Try each available slot for this course
+    // Try each available slot for this activity
     for (
       let slotIndex = 0;
-      slotIndex < course.availableSlots.length;
+      slotIndex < activity.availableSlots.length;
       slotIndex++
     ) {
       // Skip if this slot is already scheduled as a dependency
@@ -137,9 +137,9 @@ export const generateScheduleBacktracking = (
         continue;
       }
 
-      const slot = course.availableSlots[slotIndex];
+      const slot = activity.availableSlots[slotIndex];
       const potentialSlot: ScheduleSlot = {
-        courseCode: course.courseCode,
+        activityCode: activity.activityCode,
         days: slot.days,
         startTime: slot.startTime,
         endTime: slot.endTime,
@@ -148,9 +148,9 @@ export const generateScheduleBacktracking = (
 
       // Get all dependent slots that must be scheduled with this slot
       const mandatoryDependentSlots = getMandatoryDependentSlots(
-        course,
+        activity,
         slotIndex,
-        courses
+        activities
       );
 
       const slotsToAdd = [potentialSlot, ...mandatoryDependentSlots];
@@ -162,7 +162,7 @@ export const generateScheduleBacktracking = (
       ) {
         // Add all slots and recurse
         currentSchedule.push(...slotsToAdd);
-        backtrack(courseIndex + 1, currentSchedule);
+        backtrack(activityIndex + 1, currentSchedule);
 
         // Backtrack: remove all added slots
         for (let i = 0; i < slotsToAdd.length; i++) {
@@ -171,47 +171,47 @@ export const generateScheduleBacktracking = (
       }
     }
 
-    // Also try skipping this course
-    backtrack(courseIndex + 1, currentSchedule);
+    // Also try skipping this activity
+    backtrack(activityIndex + 1, currentSchedule);
   };
 
   // Start backtracking
   backtrack(0, []);
 
   // Generate analysis
-  const scheduledCourseSlots = new Set(
-    bestSchedule.map((slot) => `${slot.courseCode}-${slot.slotIndex}`)
+  const scheduledActivitySlots = new Set(
+    bestSchedule.map((slot) => `${slot.activityCode}-${slot.slotIndex}`)
   );
 
   const conflicts: string[] = [];
   const dependencyViolations: string[] = [];
 
   // Analyze results
-  courses.forEach((course) => {
-    const courseScheduled = bestSchedule.some(
-      (slot) => slot.courseCode === course.courseCode
+  activities.forEach((activity) => {
+    const activityScheduled = bestSchedule.some(
+      (slot) => slot.activityCode === activity.activityCode
     );
 
-    if (!courseScheduled) {
-      conflicts.push(`Could not schedule ${course.courseCode}`);
+    if (!activityScheduled) {
+      conflicts.push(`Could not schedule ${activity.activityCode}`);
     } else {
-      // Check dependency violations for scheduled courses
-      course.availableSlots.forEach((slot, slotIndex) => {
-        if (scheduledCourseSlots.has(`${course.courseCode}-${slotIndex}`)) {
+      // Check dependency violations for scheduled activities
+      activity.availableSlots.forEach((slot, slotIndex) => {
+        if (scheduledActivitySlots.has(`${activity.activityCode}-${slotIndex}`)) {
           const mandatoryDeps = getMandatoryDependentSlots(
-            course,
+            activity,
             slotIndex,
-            courses
+            activities
           );
 
           mandatoryDeps.forEach((dep) => {
             if (
-              !scheduledCourseSlots.has(`${dep.courseCode}-${dep.slotIndex}`)
+              !scheduledActivitySlots.has(`${dep.activityCode}-${dep.slotIndex}`)
             ) {
               dependencyViolations.push(
-                `Dependency violation: ${course.courseCode} slot ${
+                `Dependency violation: ${activity.activityCode} slot ${
                   slotIndex + 1
-                } requires ${dep.courseCode} slot ${dep.slotIndex + 1}`
+                } requires ${dep.activityCode} slot ${dep.slotIndex + 1}`
               );
             }
           });
@@ -223,8 +223,8 @@ export const generateScheduleBacktracking = (
   return {
     schedule: bestSchedule,
     conflicts,
-    totalCourses: courses.length,
-    scheduledCourses: new Set(bestSchedule.map((slot) => slot.courseCode)).size,
+    totalActivities: activities.length,
+    scheduledActivities: new Set(bestSchedule.map((slot) => slot.activityCode)).size,
     algorithm: "backtracking",
     generatedAt: new Date().toISOString(),
     dependencyViolations,
@@ -234,6 +234,6 @@ export const generateScheduleBacktracking = (
 /**
  * Main schedule generation function
  */
-export const generateSchedule = (courses: Course[]): GeneratedSchedule => {
-  return generateScheduleBacktracking(courses);
+export const generateSchedule = (activities: Activity[]): GeneratedSchedule => {
+  return generateScheduleBacktracking(activities);
 };

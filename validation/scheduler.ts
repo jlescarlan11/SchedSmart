@@ -11,20 +11,20 @@ export const timeSlotSchema = z.object({
   endTime: z.string().min(1, "End time is required"),
 });
 
-export const courseSchema = z.object({
-  courseCode: z
+export const activitySchema = z.object({
+  activityCode: z
     .string()
-    .min(1, "Course code is required")
-    .max(20, "Course code must be 20 characters or less")
+    .min(1, "Activity code is required")
+    .max(20, "Activity code must be 20 characters or less")
     .regex(
       /^[A-Za-z0-9\s-_]+$/,
-      "Course code can only contain letters, numbers, spaces, hyphens, and underscores"
+      "Activity code can only contain letters, numbers, spaces, hyphens, and underscores"
     ),
 });
 
 // New dependency validation schema
 export const dependencySchema = z.object({
-  dependentCourseCode: z.string().min(1, "Dependent course is required"),
+  dependentActivityCode: z.string().min(1, "Dependent activity is required"),
   dependentSlotIndex: z
     .number()
     .min(0, "Slot index must be non-negative")
@@ -33,5 +33,5 @@ export const dependencySchema = z.object({
 
 // Export inferred types
 export type TimeSlotFormData = z.infer<typeof timeSlotSchema>;
-export type CourseFormData = z.infer<typeof courseSchema>;
+export type ActivityFormData = z.infer<typeof activitySchema>;
 export type DependencyFormData = z.infer<typeof dependencySchema>;

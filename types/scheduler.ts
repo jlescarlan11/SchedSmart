@@ -7,21 +7,21 @@ export interface TimeSlot {
 }
 
 // New dependency interface
-export interface CourseDependency {
-  courseCode: string;
+export interface ActivityDependency {
+  activityCode: string;
   slotIndex: number;
-  dependentCourseCode: string;
+  dependentActivityCode: string;
   dependentSlotIndex: number;
 }
 
-export interface Course {
-  courseCode: string;
+export interface Activity {
+  activityCode: string;
   availableSlots: TimeSlot[];
-  dependencies?: CourseDependency[]; // Optional dependencies for this course
+  dependencies?: ActivityDependency[]; // Optional dependencies for this activity
 }
 
 export interface ScheduleSlot {
-  courseCode: string;
+  activityCode: string;
   days: string[];
   startTime: string;
   endTime: string;
@@ -31,8 +31,8 @@ export interface ScheduleSlot {
 export interface GeneratedSchedule {
   schedule: ScheduleSlot[];
   conflicts: string[];
-  totalCourses: number;
-  scheduledCourses: number;
+  totalActivities: number;
+  scheduledActivities: number;
   algorithm: "backtracking";
   generatedAt: string;
   dependencyViolations?: string[]; // Track dependency issues
@@ -44,8 +44,8 @@ export interface DayPreset {
 }
 
 // Form types
-export interface CourseFormData {
-  courseCode: string;
+export interface ActivityFormData {
+  activityCode: string;
 }
 
 export interface TimeSlotFormData {
@@ -56,6 +56,6 @@ export interface TimeSlotFormData {
 
 // New dependency form type
 export interface DependencyFormData {
-  dependentCourseCode: string;
+  dependentActivityCode: string;
   dependentSlotIndex: number;
 }

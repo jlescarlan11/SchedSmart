@@ -4,46 +4,24 @@ import Logo from "@/components/ui/logo";
 import pages from "@/data/navigationPage";
 import { cn } from "@/lib/utils";
 import { getHrefFromPath, isPageActive } from "@/utils/navigation";
-import { Menu, X } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
+import { Menu } from "lucide-react";
+import { motion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 const NavigationBar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
-
-  // Close menu on route change
-  useEffect(() => {
-    setIsOpen(false);
-  }, [pathname]);
-
-  // Prevent body scroll when menu is open
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [isOpen]);
-
-  // Handle escape key
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setIsOpen(false);
-    };
-
-    if (isOpen) {
-      document.addEventListener("keydown", handleEscape);
-      return () => document.removeEventListener("keydown", handleEscape);
-    }
-  }, [isOpen]);
 
   return (
     <>
@@ -86,120 +64,74 @@ const NavigationBar: React.FC = () => {
           </div>
 
           {/* Mobile Menu Button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setIsOpen(!isOpen)}
-            className="lg:hidden z-50 relative"
-            aria-label={isOpen ? "Close menu" : "Open menu"}
-          >
-            <motion.div
-              animate={{ rotate: isOpen ? 180 : 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              {isOpen ? (
-                <X className="w-6 h-6" />
-              ) : (
+          <Sheet open={isOpen} onOpenChange={setIsOpen}>
+            <SheetTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="lg:hidden z-50 relative"
+                aria-label="Open menu"
+              >
                 <Menu className="w-6 h-6" />
-              )}
-            </motion.div>
-          </Button>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-80 max-w-[80vw]">
+              <SheetHeader>
+                <SheetTitle>Navigation</SheetTitle>
+                <SheetDescription>
+                  Navigate through SmartSched features
+                </SheetDescription>
+              </SheetHeader>
+              <nav className="flex-1 p-6">
+                <div className="space-y-2">
+                  {pages.map(([path, label], index) => {
+                    const href = getHrefFromPath(path);
+                    const isActive = isPageActive(pathname, path);
+
+                    return (
+                      <motion.div
+                        key={path}
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{
+                          delay: index * 0.1 + 0.2,
+                          duration: 0.4,
+                        }}
+                      >
+                        <Link
+                          href={href}
+                          onClick={() => setIsOpen(false)}
+                          className={cn(
+                            "block px-4 py-3 rounded-xl transition-all duration-200 group",
+                            isActive
+                              ? "bg-primary/10 text-primary"
+                              : "text-muted-foreground hover:text-foreground hover:bg-accent/20"
+                          )}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="font-medium tracking-wide">
+                              {label}
+                            </span>
+                            {isActive && (
+                              <div className="w-2 h-2 rounded-full bg-primary" />
+                            )}
+                          </div>
+                        </Link>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              </nav>
+              <div className="p-6 border-t border-border/10">
+                <p className="text-xs zen-text-secondary text-center">
+                  SmartSched - Intelligent Scheduling
+                </p>
+              </div>
+            </SheetContent>
+          </Sheet>
         </nav>
       </header>
 
-      {/* Mobile Menu Overlay */}
-      <AnimatePresence>
-        {isOpen && (
-          <>
-            {/* Backdrop - Invisible click area */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="lg:hidden fixed inset-0 z-40"
-              onClick={() => setIsOpen(false)}
-            />
-
-            {/* Mobile Menu Panel */}
-            <motion.div
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{
-                type: "spring",
-                damping: 25,
-                stiffness: 200,
-                duration: 0.3,
-              }}
-              className="lg:hidden fixed top-0 right-0 bottom-0 z-50 w-80 max-w-[80vw] bg-background border-l border-border/20 zen-shadow-medium"
-            >
-              <div className="flex flex-col h-full">
-                {/* Header with Close Button */}
-                <div className="h-28 flex items-center justify-end px-6 border-b border-border/10">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setIsOpen(false)}
-                    aria-label="Close menu"
-                  >
-                    <X className="w-6 h-6" />
-                  </Button>
-                </div>
-
-                {/* Navigation Links */}
-                <nav className="flex-1 p-6">
-                  <div className="space-y-2">
-                    {pages.map(([path, label], index) => {
-                      const href = getHrefFromPath(path);
-                      const isActive = isPageActive(pathname, path);
-
-                      return (
-                        <motion.div
-                          key={path}
-                          initial={{ opacity: 0, x: 20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{
-                            delay: index * 0.1 + 0.2,
-                            duration: 0.4,
-                          }}
-                        >
-                          <Link
-                            href={href}
-                            onClick={() => setIsOpen(false)}
-                            className={cn(
-                              "block px-4 py-3 rounded-xl transition-all duration-200 group",
-                              isActive
-                                ? "bg-primary/10 text-primary"
-                                : "text-muted-foreground hover:text-foreground hover:bg-accent/20"
-                            )}
-                          >
-                            <div className="flex items-center justify-between">
-                              <span className="font-medium tracking-wide">
-                                {label}
-                              </span>
-                              {isActive && (
-                                <div className="w-2 h-2 rounded-full bg-primary" />
-                              )}
-                            </div>
-                          </Link>
-                        </motion.div>
-                      );
-                    })}
-                  </div>
-                </nav>
-
-                {/* Footer */}
-                <div className="p-6 border-t border-border/10">
-                  <p className="text-xs zen-text-secondary text-center">
-                    SmartSched - Intelligent Scheduling
-                  </p>
-                </div>
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
     </>
   );
 };

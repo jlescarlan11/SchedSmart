@@ -11,10 +11,15 @@ import {
   Lightbulb,
   CheckCircle,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 const steps = [
   {
@@ -22,114 +27,125 @@ const steps = [
     title: "Add Your Activities",
     icon: BookOpen,
     description:
-      "Start by entering your activity names. Each activity needs a unique identifier like 'Meeting-A' or 'Class-101'.",
+      "Start by adding all the activities you need to schedule. Think of activities like 'Math Class', 'Study Group', or 'Work Meeting'. Give each one a clear, simple name.",
     details: [
-      "Use clear, descriptive activity names",
-      "Avoid special characters or spaces",
-      "Keep names consistent and meaningful",
+      "Use simple, descriptive names like 'Math 101' or 'Team Meeting'",
+      "Avoid symbols like @, #, or spaces in names",
+      "Make sure each activity has a unique name",
+      "Example: Instead of 'Meeting@3pm', use 'Marketing Meeting'",
     ],
   },
   {
     number: "02",
-    title: "Define Time Slots",
+    title: "Set Available Times",
     icon: Clock,
     description:
-      "For each activity, add available time slots including days, start time, and end time.",
+      "For each activity, tell SmartSched when it can happen. You can add multiple time options for the same activity.",
     details: [
-      "Select the days when the activity is available",
-      "Set precise start and end times",
-      "Add multiple time slots if the activity has different options",
-      "Consider break times between activities",
+      "Choose which days the activity is available (Monday, Tuesday, etc.)",
+      "Set the start and end times (like 9:00 AM to 10:30 AM)",
+      "Add different time options if an activity can happen at various times",
+      "Example: Math class could be Monday 9-10 AM or Tuesday 2-3 PM",
     ],
   },
   {
     number: "03",
-    title: "Set Dependencies",
+    title: "Connect Related Activities",
     icon: Link2,
     description:
-      "Link activities that cannot overlap in time, such as prerequisite activities or conflicting schedules.",
+      "Link activities that belong together or can't happen at the same time. This ensures they're scheduled properly and prevents conflicts.",
     details: [
-      "Add prerequisite relationships",
-      "Mark activities that cannot happen simultaneously",
-      "Consider related session conflicts",
-      "Review all dependencies before generating",
+      "Connect related activities (like a lecture and its lab)",
+      "Set up prerequisites (like 'Study' must come before 'Exam')",
+      "Mark activities that conflict with each other",
+      "Example: Connect 'Math Lecture' with 'Math Lab' so they're scheduled together",
     ],
   },
   {
     number: "04",
-    title: "Generate Schedule",
+    title: "Create Your Schedule",
     icon: Calendar,
     description:
-      "Let SmartSched create optimized schedules that respect all your constraints and preferences.",
+      "Click the generate button and let SmartSched create your perfect schedule. It will find the best times for all your activities.",
     details: [
-      "Review the generated schedule carefully",
-      "Check for any conflicts or issues",
-      "Verify all activities are included",
-      "Ensure break times are adequate",
+      "Review your new schedule to make sure it looks right",
+      "Check that all your activities are included",
+      "Make sure there are no time conflicts",
+      "Verify you have enough time between activities",
     ],
   },
   {
     number: "05",
-    title: "Export & Save",
+    title: "Save & Share",
     icon: Download,
     description:
-      "Download your schedule as an image or save it for future reference and planning.",
+      "Download your schedule as an image file that you can print, share, or save to your computer.",
     details: [
-      "Export as high-quality image",
-      "Save multiple schedule versions",
-      "Share with advisors or peers",
-      "Print for offline reference",
+      "Download as a high-quality image file",
+      "Save different versions if you make changes",
+      "Share with teachers, friends, or family",
+      "Print a copy to keep with you",
     ],
   },
 ];
 
 const tips = [
   {
-    title: "Plan Ahead",
+    title: "Start with Everything",
     description:
-      "Add all your activities before setting dependencies to get a complete view of your schedule.",
+      "Add all your activities first before connecting them. This gives you a complete picture of what needs to be scheduled.",
     icon: Lightbulb,
   },
   {
-    title: "Consider Travel Time",
+    title: "Leave Time Between Activities",
     description:
-      "Leave buffer time between activities in different locations or requiring setup time.",
+      "If you need to travel between locations or prepare for the next activity, add buffer time between them.",
     icon: Clock,
   },
   {
-    title: "Review Dependencies",
+    title: "Check Your Connections",
     description:
-      "Double-check all activity dependencies to ensure your schedule is conflict-free.",
+      "Before generating your schedule, review all the connections between activities to make sure they make sense.",
     icon: CheckCircle,
   },
   {
-    title: "Multiple Options",
+    title: "Add Backup Times",
     description:
-      "Add alternative time slots for activities to increase scheduling flexibility.",
+      "If an activity can happen at different times, add multiple time options to give SmartSched more flexibility.",
     icon: Calendar,
   },
 ];
 
 const faqs = [
   {
-    question: "What if I have activities with multiple time options?",
+    question: "What if an activity can happen at different times?",
     answer:
-      "Add all available time slots for each activity. SmartSched will choose the best combination to create an optimal schedule without conflicts.",
+      "Perfect! Add all the possible time slots for that activity. SmartSched will pick the best times that work with your other activities. For example, if 'Math Class' can be Monday 9-10 AM or Tuesday 2-3 PM, add both options.",
   },
   {
-    question: "How do I handle related sessions or sub-activities?",
+    question: "How do I handle activities that are related to each other?",
     answer:
-      "Treat related sessions as separate activities if they have different time slots, or add dependencies between related activities to ensure proper scheduling.",
+      "If activities are connected (like a lecture and its lab), add them as separate activities and then connect them. This ensures they're scheduled in the right order and don't conflict with each other.",
   },
   {
-    question: "Can I modify an activity after adding it?",
+    question: "Can I change an activity after I've added it?",
     answer:
-      "Yes! Click the edit button next to any activity to modify its details, time slots, or dependencies at any time.",
+      "Absolutely! Click the edit button next to any activity to change its name, times, or connections. You can make changes anytime before or after generating your schedule.",
   },
   {
-    question: "What happens if no valid schedule exists?",
+    question: "What if SmartSched can't create a schedule?",
     answer:
-      "SmartSched will notify you of conflicts and suggest which constraints to review. Consider adjusting time slots or dependencies.",
+      "Don't worry! SmartSched will tell you what's causing the problem. Usually it's because activities are trying to use the same time slot. Try adjusting the times or removing some connections between activities.",
+  },
+  {
+    question: "How many activities can I add?",
+    answer:
+      "You can add as many activities as you need! SmartSched works great with 5 activities or 50 activities. Just make sure to give each one a unique name.",
+  },
+  {
+    question: "Can I save my work and come back later?",
+    answer:
+      "Yes! Your activities and settings are automatically saved in your browser. When you come back, everything will be exactly as you left it.",
   },
 ];
 
@@ -147,9 +163,9 @@ export default function GuidePage() {
           <h1 className="zen-text-primary mb-8">Scheduling Guide</h1>
           <div className="max-w-3xl mx-auto zen-spacing-md">
             <p className="text-xl zen-text-secondary leading-relaxed">
-              Learn how to create perfect schedules with SmartSched. Follow our
-              step-by-step guide to master intelligent scheduling and optimize
-              your time management.
+              Learn how to create perfect schedules with SmartSched in just 5
+              simple steps. Our easy-to-follow guide will help you organize your
+              activities, avoid conflicts, and make the most of your time.
             </p>
           </div>
         </motion.div>
@@ -267,32 +283,25 @@ export default function GuidePage() {
           <h2 className="text-center mb-16 zen-text-accent">
             Frequently Asked Questions
           </h2>
-          <div className="max-w-4xl mx-auto zen-spacing-md">
-            {faqs.map((faq, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{
-                  duration: 0.6,
-                  delay: 1.4 + index * 0.1,
-                  ease: "easeOut",
-                }}
-              >
-                <Card className="zen-card">
-                  <CardHeader>
-                    <CardTitle className="zen-text-primary text-lg font-medium">
+          <div className="max-w-4xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 1.4, ease: "easeOut" }}
+            >
+              <Accordion type="single" collapsible className="zen-surface">
+                {faqs.map((faq, index) => (
+                  <AccordionItem key={index} value={`item-${index}`} className="border-border/20">
+                    <AccordionTrigger className="zen-text-primary text-left font-medium hover:no-underline px-6 py-4">
                       {faq.question}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="zen-text-secondary leading-relaxed">
+                    </AccordionTrigger>
+                    <AccordionContent className="zen-text-secondary leading-relaxed px-6 pb-4">
                       {faq.answer}
-                    </p>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            </motion.div>
           </div>
         </motion.div>
 
@@ -304,11 +313,13 @@ export default function GuidePage() {
           className="zen-spacing-lg"
         >
           <div className="zen-surface p-12 zen-shadow-soft text-center">
-            <h2 className="zen-text-accent mb-6">Ready to Get Started?</h2>
+            <h2 className="zen-text-accent mb-6">
+              Ready to Create Your Schedule?
+            </h2>
             <p className="zen-text-secondary mb-8 max-w-2xl mx-auto leading-relaxed">
-              Now that you know how SmartSched works, it&apos;s time to create
-              your perfect schedule. Start by adding your first activity and
-              experience the power of intelligent scheduling.
+              You&apos;re all set! Now it&apos;s time to put what you&apos;ve
+              learned into practice. Start by adding your first activity and
+              watch SmartSched create your perfect schedule in seconds.
             </p>
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
               <Button asChild size="lg">

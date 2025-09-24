@@ -77,7 +77,7 @@ export const ANIMATION_CONFIG = {
 } as const;
 
 // Algorithm selection threshold
-export const BACKTRACKING_COURSE_LIMIT = 10;
+export const BACKTRACKING_ACTIVITY_LIMIT = 10;
 
 // File export settings
 export const SCHEDULE_FILENAME = "schedule.json";

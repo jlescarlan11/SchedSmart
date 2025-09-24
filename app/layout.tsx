@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import NavigationBar from "./__navigation_bar/NavigationBar";
 import Footer from "./__footer/Footer";
+import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -54,6 +55,7 @@ export default function RootLayout({
           <div className="zen-animation-fade-in">{children}</div>
         </main>
         <Footer />
+        <Toaster />
       </body>
     </html>
   );

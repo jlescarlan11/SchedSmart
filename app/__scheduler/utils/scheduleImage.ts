@@ -1,7 +1,7 @@
 // Canvas schedule image generation extracted from ScheduleDisplay
 
 type ScheduleSlot = {
-  courseCode: string; // Activity name/code
+  activityCode: string; // Activity name/code
   room?: string;
   startTime: string;
   endTime: string;
@@ -9,15 +9,15 @@ type ScheduleSlot = {
 };
 
 const COLORS = {
-  primary: "#2D5A27",
-  primaryLight: "#4A7C59",
-  background: "#F0F8E8",
-  headerBg: "#8BC34A",
-  border: "#D4EDDA",
-  borderStrong: "#C3E6CB",
-  text: "#1B4332",
-  textLight: "#6C757D",
-  white: "#FFFFFF",
+  primary: "#2A2A2A",        // Dark gray for activity blocks
+  primaryLight: "#404040",   // Medium-dark gray
+  background: "#E8E8E8",     // Light gray background
+  headerBg: "#D0D0D0",       // Medium-light gray for headers
+  border: "#B0B0B0",         // Light gray borders
+  borderStrong: "#909090",   // Darker gray for strong borders
+  text: "#000000",          // Black text for light backgrounds
+  textLight: "#606060",      // Dark gray for light text
+  white: "#FFFFFF",         // White text for dark activity blocks
 };
 
 const WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -84,13 +84,13 @@ export const generateScheduleImage = async (schedule: ScheduleSlot[]): Promise<v
     });
   });
 
-  schedule.forEach((course) => {
-    const startMinutes = parseTime(course.startTime);
-    const endMinutes = parseTime(course.endTime);
+  schedule.forEach((activity) => {
+    const startMinutes = parseTime(activity.startTime);
+    const endMinutes = parseTime(activity.endTime);
     const durationMinutes = endMinutes - startMinutes;
     const duration30MinSlots = durationMinutes / 30;
 
-    course.days.forEach((day) => {
+    activity.days.forEach((day) => {
       const startHour = Math.floor(startMinutes / 60);
       const startMinuteInHour = startMinutes % 60;
       const startSlotIndex = startMinuteInHour < 30 ? 0 : 1;
@@ -98,7 +98,7 @@ export const generateScheduleImage = async (schedule: ScheduleSlot[]): Promise<v
 
       const gridKey = `${day}-${startSlotKey}`;
       if (Object.prototype.hasOwnProperty.call(scheduleGrid, gridKey)) {
-        scheduleGrid[gridKey] = { course, isStart: true, rowSpan: duration30MinSlots };
+        scheduleGrid[gridKey] = { course: activity, isStart: true, rowSpan: duration30MinSlots };
 
         let currentHour = startHour;
         let currentSlotIndex = startSlotIndex;
@@ -110,7 +110,7 @@ export const generateScheduleImage = async (schedule: ScheduleSlot[]): Promise<v
           }
           const continueKey = `${day}-${currentHour}-${currentSlotIndex}`;
           if (Object.prototype.hasOwnProperty.call(scheduleGrid, continueKey)) {
-            scheduleGrid[continueKey] = { course, isStart: false, rowSpan: 0 };
+            scheduleGrid[continueKey] = { course: activity, isStart: false, rowSpan: 0 };
           }
         }
       }
@@ -168,7 +168,7 @@ export const generateScheduleImage = async (schedule: ScheduleSlot[]): Promise<v
         ctx.fillStyle = COLORS.white;
         ctx.font = "bold 11px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
         ctx.textAlign = "center";
-        ctx.fillText(gridData.course.courseCode, cellX + cellWidth / 2, rowY + blockHeight / 2 - 6);
+        ctx.fillText(gridData.course.activityCode, cellX + cellWidth / 2, rowY + blockHeight / 2 - 6);
         if (gridData.course.room) {
           ctx.font = "9px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
           ctx.fillText(gridData.course.room, cellX + cellWidth / 2, rowY + blockHeight / 2 + 6);
