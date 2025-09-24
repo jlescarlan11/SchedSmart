@@ -4,7 +4,7 @@ import Logo from "@/components/ui/logo";
 import pages from "@/data/navigationPage";
 import { cn } from "@/lib/utils";
 import { getHrefFromPath, isPageActive } from "@/utils/navigation";
-import { Menu } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -14,7 +14,6 @@ import {
   Sheet,
   SheetContent,
   SheetDescription,
-  SheetHeader,
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
@@ -75,13 +74,25 @@ const NavigationBar: React.FC = () => {
                 <Menu className="w-6 h-6" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-80 max-w-[80vw]">
-              <SheetHeader>
-                <SheetTitle>Navigation</SheetTitle>
-                <SheetDescription>
-                  Navigate through SmartSched features
-                </SheetDescription>
-              </SheetHeader>
+            <SheetContent side="right" className="w-80 max-w-[80vw] p-0 [&>button]:hidden">
+              {/* Accessibility components - visually hidden */}
+              <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+              <SheetDescription className="sr-only">
+                Navigate through SmartSched features and pages
+              </SheetDescription>
+              
+              {/* Custom Header - matches main nav bar */}
+              <div className="h-28 flex items-center justify-end px-6 border-b border-border/10">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsOpen(false)}
+                  aria-label="Close menu"
+                >
+                  <X className="w-6 h-6" />
+                </Button>
+              </div>
+              
               <nav className="flex-1 p-6">
                 <div className="space-y-2">
                   {pages.map(([path, label], index) => {

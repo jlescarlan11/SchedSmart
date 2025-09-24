@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { Play, Trash2, Edit3, Link2, Clock, AlertTriangle, MoreVertical, Eye } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
@@ -98,12 +98,12 @@ export const ActivityList: React.FC = () => {
       {/* Activities List */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span>Activities ({activities.length})</span>
+          <CardTitle className="flex items-center justify-between flex-wrap gap-4">
+            <span className="flex-shrink-0">Activities ({activities.length})</span>
             <Button
               onClick={handleGenerateSchedule}
               disabled={!canGenerateSchedule || isGenerating}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 w-full sm:w-auto sm:ml-auto"
             >
               <Play className="h-4 w-4" />
               {isGenerating ? "Generating..." : "Generate Schedule"}
@@ -129,14 +129,15 @@ export const ActivityList: React.FC = () => {
       {generatedSchedule && (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center justify-between">
+            <CardTitle className="flex items-center justify-between flex-wrap gap-4">
               <span>Generated Schedule</span>
-              <div className="flex gap-2">
+              <div className="flex gap-2 w-full">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={handleDownloadSchedule}
                   disabled={isLoading}
+                  className="flex-1"
                 >
                   <Eye className="h-4 w-4 mr-2" />
                   {isLoading ? "Downloading..." : "Download"}
@@ -144,6 +145,7 @@ export const ActivityList: React.FC = () => {
                 <Button
                   variant="outline"
                   size="sm"
+                  className="flex-1"
                   onClick={scheduleHandlers.resetScheduler}
                 >
                   Reset
@@ -172,10 +174,10 @@ const ActivityItem: React.FC<{
     <motion.div
       {...ANIMATION_CONFIG.slideInRight}
       transition={{ delay: index * 0.1 }}
-      className="p-4 border border-border/30 rounded-lg bg-card/30 hover:bg-accent/30 transition-all duration-300 hover:shadow-sm"
+      className="border border-border/30 rounded-lg bg-card/30 hover:bg-accent/30 transition-all duration-300 hover:shadow-sm"
     >
       <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <h4 className="font-semibold text-lg">{activity.activityCode}</h4>
           {dependencyCount > 0 && (
             <Tooltip>
@@ -241,18 +243,17 @@ const ActivityItem: React.FC<{
           return (
             <div key={slotIndex} className="space-y-1">
               {/* Time Slot */}
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Clock className="h-4 w-4" />
-                <span>{slot.days.map(getDayAbbreviation).join(", ")}</span>
-                <span>•</span>
-                <span>{slot.startTime} - {slot.endTime}</span>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
+                <span>
+                  {slot.days.map(getDayAbbreviation).join(", ")} • {slot.startTime} - {slot.endTime}
+                </span>
               </div>
               
               {/* Dependencies for this slot */}
               {slotDependencies.length > 0 && (
                 <div className="ml-6 space-y-1">
                   <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <Link2 className="h-3 w-3" />
+                 
                     <span>Depends on:</span>
                   </div>
                   {slotDependencies.map((dep, depIndex) => (
@@ -306,7 +307,7 @@ const ScheduleDisplay: React.FC<{
       {/* Schedule Items */}
       <div className="space-y-2">
         {schedule.schedule.map((item: import("@/types/scheduler").ScheduleSlot, index: number) => (
-          <div key={index} className="flex items-center justify-between p-2 bg-accent/30 rounded">
+          <div key={index} className="flex items-center justify-between p-2 bg-accent/30 rounded flex-wrap ">
             <span className="font-medium">{item.activityCode}</span>
             <span className="text-sm text-muted-foreground">
               {item.days.map(getDayAbbreviation).join(", ")} • {item.startTime} - {item.endTime}
