@@ -2,10 +2,19 @@
 
 import React from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Play, Trash2, Edit3, Link2, Clock, AlertTriangle, MoreVertical, Eye } from "lucide-react";
+import {
+  Play,
+  Trash2,
+  Edit3,
+  Link2,
+  Clock,
+  AlertTriangle,
+  MoreVertical,
+  Eye,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
@@ -55,7 +64,7 @@ export const ActivityList: React.FC = () => {
   const handleGenerateSchedule = async () => {
     setIsGenerating(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate processing
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate processing
       scheduleHandlers.handleGenerateSchedule();
       toast.success("Schedule generated successfully!");
     } catch {
@@ -67,7 +76,7 @@ export const ActivityList: React.FC = () => {
 
   const handleDownloadSchedule = async () => {
     if (!generatedSchedule) return;
-    
+
     setIsLoading(true);
     try {
       await generateScheduleImage(generatedSchedule.schedule);
@@ -99,7 +108,9 @@ export const ActivityList: React.FC = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between flex-wrap gap-4">
-            <span className="flex-shrink-0">Activities ({activities.length})</span>
+            <span className="flex-shrink-0">
+              Activities ({activities.length})
+            </span>
             <Button
               onClick={handleGenerateSchedule}
               disabled={!canGenerateSchedule || isGenerating}
@@ -154,7 +165,10 @@ export const ActivityList: React.FC = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ScheduleDisplay schedule={generatedSchedule} isNewlyGenerated={isNewlyGenerated} />
+            <ScheduleDisplay
+              schedule={generatedSchedule}
+              isNewlyGenerated={isNewlyGenerated}
+            />
           </CardContent>
         </Card>
       )}
@@ -182,18 +196,24 @@ const ActivityItem: React.FC<{
           {dependencyCount > 0 && (
             <Tooltip>
               <TooltipTrigger asChild>
-                <Badge variant="secondary" className="flex items-center gap-1  text-xs cursor-help">
+                <Badge
+                  variant="secondary"
+                  className="flex items-center gap-1  text-xs cursor-help"
+                >
                   <Link2 className="h-3 w-3" />
-                  {dependencyCount} dependenc{dependencyCount > 1 ? 'ies' : 'y'}
+                  {dependencyCount} dependenc{dependencyCount > 1 ? "ies" : "y"}
                 </Badge>
               </TooltipTrigger>
               <TooltipContent>
-                <p className="text-background">This activity has {dependencyCount} dependency relationship{dependencyCount > 1 ? 's' : ''}</p>
+                <p className="text-background">
+                  This activity has {dependencyCount} dependency relationship
+                  {dependencyCount > 1 ? "s" : ""}
+                </p>
               </TooltipContent>
             </Tooltip>
           )}
         </div>
-        
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
@@ -217,7 +237,8 @@ const ActivityItem: React.FC<{
                 <AlertDialogHeader>
                   <AlertDialogTitle>Delete Activity</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Are you sure you want to delete &quot;{activity.activityCode}&quot;? This action cannot be undone.
+                    Are you sure you want to delete &quot;
+                    {activity.activityCode}&quot;? This action cannot be undone.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -234,39 +255,50 @@ const ActivityItem: React.FC<{
 
       {/* Time Slots */}
       <div className="space-y-2">
-        {activity.availableSlots.map((slot: import("@/types/scheduler").TimeSlot, slotIndex: number) => {
-          // Get dependencies for this specific slot
-          const slotDependencies = activity.dependencies?.filter(
-            (dep) => dep.activityCode === activity.activityCode && dep.slotIndex === slotIndex
-          ) || [];
+        {activity.availableSlots.map(
+          (slot: import("@/types/scheduler").TimeSlot, slotIndex: number) => {
+            // Get dependencies for this specific slot
+            const slotDependencies =
+              activity.dependencies?.filter(
+                (dep) =>
+                  dep.activityCode === activity.activityCode &&
+                  dep.slotIndex === slotIndex
+              ) || [];
 
-          return (
-            <div key={slotIndex} className="space-y-1">
-              {/* Time Slot */}
-              <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
-                <span>
-                  {slot.days.map(getDayAbbreviation).join(", ")} • {slot.startTime} - {slot.endTime}
-                </span>
-              </div>
-              
-              {/* Dependencies for this slot */}
-              {slotDependencies.length > 0 && (
-                <div className="ml-6 space-y-1">
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                 
-                    <span>Depends on:</span>
-                  </div>
-                  {slotDependencies.map((dep, depIndex) => (
-                    <div key={depIndex} className="ml-4 flex items-center gap-1 text-xs text-muted-foreground">
-                      <span className="w-1 h-1 bg-muted-foreground rounded-full"></span>
-                      <span>{dep.dependentActivityCode} (Slot {dep.dependentSlotIndex + 1})</span>
-                    </div>
-                  ))}
+            return (
+              <div key={slotIndex} className="space-y-1">
+                {/* Time Slot */}
+                <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
+                  <span>
+                    {slot.days.map(getDayAbbreviation).join(", ")} •{" "}
+                    {slot.startTime} - {slot.endTime}
+                  </span>
                 </div>
-              )}
-            </div>
-          );
-        })}
+
+                {/* Dependencies for this slot */}
+                {slotDependencies.length > 0 && (
+                  <div className="ml-6 space-y-1">
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <span>Depends on:</span>
+                    </div>
+                    {slotDependencies.map((dep, depIndex) => (
+                      <div
+                        key={depIndex}
+                        className="ml-4 flex items-center gap-1 text-xs text-muted-foreground"
+                      >
+                        <span className="w-1 h-1 bg-muted-foreground rounded-full"></span>
+                        <span>
+                          {dep.dependentActivityCode} (Slot{" "}
+                          {dep.dependentSlotIndex + 1})
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          }
+        )}
       </div>
     </motion.div>
   );
@@ -276,7 +308,8 @@ const ScheduleDisplay: React.FC<{
   schedule: import("@/types/scheduler").GeneratedSchedule;
   isNewlyGenerated: boolean;
 }> = ({ schedule }) => {
-  const progress = (schedule.scheduledActivities / schedule.totalActivities) * 100;
+  const progress =
+    (schedule.scheduledActivities / schedule.totalActivities) * 100;
 
   return (
     <div className="space-y-4">
@@ -284,7 +317,9 @@ const ScheduleDisplay: React.FC<{
       <div className="space-y-2">
         <div className="flex justify-between text-sm">
           <span>Scheduled Activities</span>
-          <span>{schedule.scheduledActivities}/{schedule.totalActivities}</span>
+          <span>
+            {schedule.scheduledActivities}/{schedule.totalActivities}
+          </span>
         </div>
         <Progress value={progress} className="h-2" />
       </div>
@@ -297,7 +332,9 @@ const ScheduleDisplay: React.FC<{
             <strong>Conflicts detected:</strong>
             <ul className="mt-2 list-disc list-inside">
               {schedule.conflicts.map((conflict: string, index: number) => (
-                <li key={index} className="text-sm">{conflict}</li>
+                <li key={index} className="text-sm">
+                  {conflict}
+                </li>
               ))}
             </ul>
           </AlertDescription>
@@ -306,14 +343,22 @@ const ScheduleDisplay: React.FC<{
 
       {/* Schedule Items */}
       <div className="space-y-2">
-        {schedule.schedule.map((item: import("@/types/scheduler").ScheduleSlot, index: number) => (
-          <div key={index} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-2 bg-accent/30 rounded gap-2">
-            <span className="font-medium flex-shrink-0">{item.activityCode}</span>
-            <span className="text-sm text-muted-foreground sm:text-right whitespace-nowrap">
-              {item.days.map(getDayAbbreviation).join(", ")} • {item.startTime} - {item.endTime}
-            </span>
-          </div>
-        ))}
+        {schedule.schedule.map(
+          (item: import("@/types/scheduler").ScheduleSlot, index: number) => (
+            <div
+              key={index}
+              className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-2 bg-accent/30 rounded gap-2"
+            >
+              <span className="font-medium flex-shrink-0">
+                {item.activityCode}
+              </span>
+              <span className="text-sm text-muted-foreground sm:text-right whitespace-nowrap">
+                {item.days.map(getDayAbbreviation).join(", ")} •{" "}
+                {item.startTime} - {item.endTime}
+              </span>
+            </div>
+          )
+        )}
       </div>
     </div>
   );
